@@ -20,7 +20,6 @@ Drag and drop BFRES or SARC files that contain BFRES onto the executable or set 
 ## BfresToCast makes use of the following:
 - [Astc-Encoder-csharp](https://github.com/Ash39/Astc-Encoder-csharp/tree/2638331143a786f9e3a9e1e7916639d39877cfde)
 - [BCnEncoder.Net](https://github.com/Nominom/BCnEncoder.NET)
-- [BCnEncoder.Net](https://github.com/Nominom/BCnEncoder.NET)
 - [BfresLibrary](https://github.com/KillzXGaming/BfresLibrary)
 - [Cast.NET](https://github.com/Scobalula/Cast.NET)
 - [ImageLibrary](https://github.com/KillzXGaming/ImageLibrary)
