@@ -1,78 +1,21 @@
 using BfresLibrary.Switch;
 using ImageLibrary;
+using ImageLibrary.PlatformSwizzle;
 using Syroot.NintenTools.NSW.Bntx.GFX;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace BfresToCast.Utils;
 
 public static class TextureUtils
 {
-    public static Dictionary<int, ImageEncoder> FormatList = new Dictionary<int, ImageEncoder>()
+    private static Dictionary<ChannelType, TextureChannelType> ChannelSwapList = new Dictionary<ChannelType, TextureChannelType>()
     {
-        { (int)SurfaceFormat.R8_G8_B8_A8_UNORM, ImageFormats.Rgba8() },
-        { (int)SurfaceFormat.R8_G8_B8_A8_SRGB, ImageFormats.Rgba8(true) },
-        { (int)SurfaceFormat.R8_G8_UNORM, ImageFormats.Rg8() },
-        { (int)SurfaceFormat.R8_G8_SNORM, ImageFormats.Rg8Signed()},
-        { (int)SurfaceFormat.R8_UNORM, ImageFormats.R8() },
-        { (int)SurfaceFormat.R16_UNORM, ImageFormats.R16() },
-        { (int)SurfaceFormat.R16_UINT, ImageFormats.R16() },
-        { (int)SurfaceFormat.R16_FLOAT, ImageFormats.R16() },
-        { (int)SurfaceFormat.R32_UNORM, ImageFormats.R32() },
-        { (int)SurfaceFormat.R32_G32_B32_A32_UNORM, ImageFormats.Rgba32() },
-
-        { (int)SurfaceFormat.D32_FLOAT_S8X24_UINT, ImageFormats.Rgba8() },
-
-        { (int)SurfaceFormat.R11_G11_B10_UNORM,  ImageFormats.R11g11b10() },
-        { (int)SurfaceFormat.R5_G5_B5_A1_UNORM,  ImageFormats.Rgba5551() },
-        { (int)SurfaceFormat.R5_G6_B5_UNORM, ImageFormats.Rgba565() },
-        { (int)SurfaceFormat.R4_G4_UNORM, ImageFormats.Rg4() },
-        { (int)SurfaceFormat.R4_G4_B4_A4_UNORM, ImageFormats.Rgba4() },
-
-        { (int)SurfaceFormat.B8_G8_R8_A8_UNORM, ImageFormats.Bgra8() },
-        { (int)SurfaceFormat.B8_G8_R8_A8_SRGB,  ImageFormats.Bgra8(true) },
-
-        { (int)SurfaceFormat.BC1_UNORM, ImageFormats.Bc1() },
-        { (int)SurfaceFormat.BC1_SRGB,  ImageFormats.Bc1(true) },
-        { (int)SurfaceFormat.BC2_UNORM, ImageFormats.Bc2() },
-        { (int)SurfaceFormat.BC2_SRGB,  ImageFormats.Bc2(true) },
-        { (int)SurfaceFormat.BC3_UNORM, ImageFormats.Bc3()  },
-        { (int)SurfaceFormat.BC3_SRGB,  ImageFormats.Bc3(true) },
-        { (int)SurfaceFormat.BC4_UNORM, ImageFormats.Bc4() },
-        { (int)SurfaceFormat.BC4_SNORM, ImageFormats.Bc4(true) },
-        { (int)SurfaceFormat.BC5_UNORM, ImageFormats.Bc5() },
-        { (int)SurfaceFormat.BC5_SNORM, ImageFormats.Bc5(true) },
-        { (int)SurfaceFormat.BC6_UFLOAT, ImageFormats.Bc6() },
-        { (int)SurfaceFormat.BC6_FLOAT, ImageFormats.Bc6(true) },
-        { (int)SurfaceFormat.BC7_UNORM, ImageFormats.Bc7() },
-        { (int)SurfaceFormat.BC7_SRGB, ImageFormats.Bc7(true) },
-
-        { (int)SurfaceFormat.ASTC_4x4_UNORM, ImageFormats.Astc4x4() },
-        { (int)SurfaceFormat.ASTC_4x4_SRGB,  ImageFormats.Astc4x4(true) },
-        { (int)SurfaceFormat.ASTC_5x4_UNORM, ImageFormats.Astc5x4() },
-        { (int)SurfaceFormat.ASTC_5x4_SRGB,  ImageFormats.Astc5x4(true) },
-        { (int)SurfaceFormat.ASTC_5x5_UNORM, ImageFormats.Astc5x5() },
-        { (int)SurfaceFormat.ASTC_5x5_SRGB,  ImageFormats.Astc5x5(true) },
-        { (int)SurfaceFormat.ASTC_6x5_UNORM, ImageFormats.Astc6x5() },
-        { (int)SurfaceFormat.ASTC_6x5_SRGB,  ImageFormats.Astc6x5(true) },
-        { (int)SurfaceFormat.ASTC_6x6_UNORM, ImageFormats.Astc6x6() },
-        { (int)SurfaceFormat.ASTC_6x6_SRGB,  ImageFormats.Astc6x6(true) },
-        { (int)SurfaceFormat.ASTC_8x5_UNORM, ImageFormats.Astc8x5() },
-        { (int)SurfaceFormat.ASTC_8x5_SRGB,  ImageFormats.Astc8x5(true) },
-        { (int)SurfaceFormat.ASTC_8x6_UNORM, ImageFormats.Astc8x6() },
-        { (int)SurfaceFormat.ASTC_8x6_SRGB,  ImageFormats.Astc8x6(true) },
-        { (int)SurfaceFormat.ASTC_8x8_UNORM, ImageFormats.Astc8x8() },
-        { (int)SurfaceFormat.ASTC_8x8_SRGB,  ImageFormats.Astc8x8(true) },
-        { (int)SurfaceFormat.ASTC_10x5_UNORM, ImageFormats.Astc10x5() },
-        { (int)SurfaceFormat.ASTC_10x5_SRGB,  ImageFormats.Astc10x5(true) },
-        { (int)SurfaceFormat.ASTC_10x6_UNORM, ImageFormats.Astc10x6() },
-        { (int)SurfaceFormat.ASTC_10x6_SRGB,  ImageFormats.Astc10x6(true) },
-        { (int)SurfaceFormat.ASTC_10x8_UNORM, ImageFormats.Astc10x8() },
-        { (int)SurfaceFormat.ASTC_10x8_SRGB,  ImageFormats.Astc10x8(true) },
-        { (int)SurfaceFormat.ASTC_10x10_UNORM, ImageFormats.Astc10x10() },
-        { (int)SurfaceFormat.ASTC_10x10_SRGB,  ImageFormats.Astc10x10(true) },
-        { (int)SurfaceFormat.ASTC_12x10_UNORM, ImageFormats.Astc12x10() },
-        { (int)SurfaceFormat.ASTC_12x10_SRGB,  ImageFormats.Astc12x10(true) },
-        { (int)SurfaceFormat.ASTC_12x12_UNORM, ImageFormats.Astc12x12() },
-        { (int)SurfaceFormat.ASTC_12x12_SRGB,  ImageFormats.Astc12x12(true) },
+        { ChannelType.Zero, TextureChannelType.Zero },
+        { ChannelType.One, TextureChannelType.One },
+        { ChannelType.Red, TextureChannelType.Red },
+        { ChannelType.Green, TextureChannelType.Green },
+        { ChannelType.Blue, TextureChannelType.Blue },
+        { ChannelType.Alpha, TextureChannelType.Alpha },
     };
 
     public static bool IsHDR(SurfaceFormat fmt)
@@ -88,95 +31,95 @@ public static class TextureUtils
         }
     }
 
-    public static byte[] ConvertChannels(byte[] data, SwitchTexture tex)
+    #region Switch
+    public static GenericTextureBase SwitchTextureToGeneric(SwitchTexture switchTexture, bool isOrin)
     {
-        byte[] rgba = new byte[data.Length];
+        GenericTextureBase genericTex = new GenericTextureBase();
+        genericTex.PlatformSwizzle = new PlatformSwizzleSwitch() { IsOrin = isOrin };
 
-        int offset = 0;
+        genericTex.Name = switchTexture.Name;
+        genericTex.Width = switchTexture.Width;
+        genericTex.Height = switchTexture.Height;
+        genericTex.Depth = switchTexture.Depth;
+        genericTex.Data = switchTexture.GetSwizzledData();
+        genericTex.RedComponent = ChannelSwapList[switchTexture.Texture.ChannelRed];
+        genericTex.GreenComponent = ChannelSwapList[switchTexture.Texture.ChannelGreen];
+        genericTex.BlueComponent = ChannelSwapList[switchTexture.Texture.ChannelBlue];
+        genericTex.AlphaComponent = ChannelSwapList[switchTexture.Texture.ChannelAlpha];
+        genericTex.MipCount = switchTexture.MipCount;
+        genericTex.ArrayCount = switchTexture.ArrayLength;
+        genericTex.ImageFormat = new ImageFormat(FormatList[switchTexture.Format]);
 
-        byte GetChannel(ChannelType type)
-        {
-            if (type == ChannelType.One) return 255;
-            else if (type == ChannelType.Zero) return 0;
-            else if (type == ChannelType.Red) return data[offset + 0];
-            else if (type == ChannelType.Green) return data[offset + 1];
-            else if (type == ChannelType.Blue) return data[offset + 2];
-            else if (type == ChannelType.Alpha) return data[offset + 3];
-
-            return 255;
-        }
-
-        for (int x = 0; x < tex.Texture.Width; x++)
-        {
-            for (int y = 0; y < tex.Texture.Height; y++)
-            {
-                rgba[offset + 0] = GetChannel(tex.Texture.ChannelRed);
-                rgba[offset + 1] = GetChannel(tex.Texture.ChannelGreen);
-                rgba[offset + 2] = GetChannel(tex.Texture.ChannelBlue);
-                rgba[offset + 3] = GetChannel(tex.Texture.ChannelAlpha);
-                offset += 4;
-            }
-        }
-        return rgba;
+        return genericTex;
     }
 
-    //public static float[] DecodeHdr(byte[] input, uint width, uint height)
-    //{
-    //    BcDecoder decoder = new BcDecoder();
-    //    CompressionFormat compressionFormat = CompressionFormat.Bc6U;
-
-    //    var colors = decoder.DecodeRawHdr(new MemoryStream(input), (int)width, (int)height, compressionFormat);
-
-    //    float[] output = new float[colors.Length * 3];
-    //    for (int i = 0; i < colors.Length; i++)
-    //    {
-    //        int offset = i * 3;
-
-    //        output[offset + 0] = colors[i].r;
-    //        output[offset + 1] = colors[i].g;
-    //        output[offset + 2] = colors[i].b;
-    //    }
-    //    return output;
-    //}
-
-    public static void ToDDS(SwitchTexture tex, ImageEncoder encoder, byte[] data, string path)
+    public static Dictionary<SurfaceFormat, TextureFormat> FormatList = new Dictionary<SurfaceFormat, TextureFormat>()
     {
-        var dds = new DDS();
-        dds.MainHeader.Width = tex.Width;
-        dds.MainHeader.Height = tex.Height;
-        dds.MainHeader.Depth = tex.Depth;
-        dds.MainHeader.MipCount = tex.MipCount;
+        { SurfaceFormat.R8_G8_B8_A8_UNORM, TextureFormat.RGBA8_UNORM },
+        { SurfaceFormat.R8_G8_B8_A8_SRGB, TextureFormat.RGBA8_SRGB },
+        { SurfaceFormat.R8_G8_UNORM, TextureFormat.RG8_UNORM },
+        { SurfaceFormat.R8_G8_SNORM, TextureFormat.RG8_SNORM},
+        { SurfaceFormat.R8_UNORM, TextureFormat.R8_UNORM },
+        { SurfaceFormat.R16_UNORM, TextureFormat.R16_UNORM },
+        { SurfaceFormat.R16_UINT, TextureFormat.R16_UINT },
+        { SurfaceFormat.R16_FLOAT, TextureFormat.R16_FLOAT },
+        { SurfaceFormat.R32_UNORM, TextureFormat.R32_FLOAT }, //?
+        { SurfaceFormat.R32_G32_B32_A32_UNORM, TextureFormat.RGBA32_FLOAT }, //?
 
-        dds.ImageData = data;
-        dds.MainHeader.PitchOrLinearSize = (uint)dds.ImageData.Length / tex.ArrayLength;
+        { SurfaceFormat.D32_FLOAT_S8X24_UINT, TextureFormat.D32_FLOAT_S8X24_UINT },
 
-        int CalculateMipDimension(uint baseLevelDimension, int mipLevel)
-        {
-            return Math.Max((int)Math.Ceiling(baseLevelDimension / Math.Pow(2, mipLevel)), 1);
-        }
+        { SurfaceFormat.R11_G11_B10_UNORM,  TextureFormat.RG11B10_FLOAT }, //?
+        { SurfaceFormat.R5_G5_B5_A1_UNORM,  TextureFormat.RGB5A1_UNORM }, //?
+        { SurfaceFormat.R5_G6_B5_UNORM, TextureFormat.RGB565_UNORM }, //?
+        { SurfaceFormat.R4_G4_UNORM, TextureFormat.RG4_UNORM },
+        { SurfaceFormat.R4_G4_B4_A4_UNORM, TextureFormat.RGBA4_UNORM },
 
-        DDS.DXGI_FORMAT format = DDS.DXGI_FORMAT.DXGI_FORMAT_R8G8B8A8_UNORM;
-        if (encoder is Bcn)
-            format = ((Bcn)encoder).GetDxgiFormat();
+        { SurfaceFormat.B8_G8_R8_A8_UNORM, TextureFormat.BGRA8_UNORM },
+        { SurfaceFormat.B8_G8_R8_A8_SRGB,  TextureFormat.BGRA8_SRGB },
 
-        bool isCubemap = tex.Texture.SurfaceDim == SurfaceDim.DimCube ||
-                         tex.Texture.SurfaceDim == SurfaceDim.DimCubeArray;
+        { SurfaceFormat.BC1_UNORM, TextureFormat.BC1_UNORM },
+        { SurfaceFormat.BC1_SRGB,  TextureFormat.BC1_SRGB },
+        { SurfaceFormat.BC2_UNORM, TextureFormat.BC2_UNORM },
+        { SurfaceFormat.BC2_SRGB,  TextureFormat.BC2_SRGB },
+        { SurfaceFormat.BC3_UNORM, TextureFormat.BC3_UNORM  },
+        { SurfaceFormat.BC3_SRGB,  TextureFormat.BC3_SRGB },
+        { SurfaceFormat.BC4_UNORM, TextureFormat.BC4_UNORM },
+        { SurfaceFormat.BC4_SNORM, TextureFormat.BC4_SNORM },
+        { SurfaceFormat.BC5_UNORM, TextureFormat.BC5_UNORM   },
+        { SurfaceFormat.BC5_SNORM, TextureFormat.BC5_SNORM },
+        { SurfaceFormat.BC6_UFLOAT, TextureFormat.BC6H_UF16 }, //?
+        { SurfaceFormat.BC6_FLOAT, TextureFormat.BC6H_SF16 }, //?
+        { SurfaceFormat.BC7_UNORM, TextureFormat.BC7_UNORM },
+        { SurfaceFormat.BC7_SRGB, TextureFormat.BC7_SRGB },
 
-        if (tex.ArrayLength > 1) //Use DX10 format for array surfaces as it can do custom amounts
-            dds.SetFlags(format, true, isCubemap);
-        else
-            dds.SetFlags(format, false, isCubemap);
-
-        if (dds.IsDX10)
-        {
-            dds.Dx10Header = new DDS.DX10Header();
-            dds.Dx10Header.ResourceDim = 3;
-            if (isCubemap)
-                dds.Dx10Header.ArrayCount = tex.ArrayLength / 6;
-            else
-                dds.Dx10Header.ArrayCount = tex.ArrayLength;
-            dds.Dx10Header.DxgiFormat = (uint)format;
-        }
-        dds.Save(path);
-    }
+        { SurfaceFormat.ASTC_4x4_UNORM, TextureFormat.ASTC_4x4_UNORM },
+        { SurfaceFormat.ASTC_4x4_SRGB,  TextureFormat.ASTC_4x4_SRGB },
+        { SurfaceFormat.ASTC_5x4_UNORM, TextureFormat.ASTC_5x4_UNORM },
+        { SurfaceFormat.ASTC_5x4_SRGB,  TextureFormat.ASTC_5x4_SRGB },
+        { SurfaceFormat.ASTC_5x5_UNORM, TextureFormat.ASTC_5x5_UNORM },
+        { SurfaceFormat.ASTC_5x5_SRGB,  TextureFormat.ASTC_5x5_SRGB },
+        { SurfaceFormat.ASTC_6x5_UNORM, TextureFormat.ASTC_6x5_UNORM },
+        { SurfaceFormat.ASTC_6x5_SRGB,  TextureFormat.ASTC_6x5_SRGB },
+        { SurfaceFormat.ASTC_6x6_UNORM, TextureFormat.ASTC_6x6_UNORM },
+        { SurfaceFormat.ASTC_6x6_SRGB,  TextureFormat.ASTC_6x6_SRGB },
+        { SurfaceFormat.ASTC_8x5_UNORM, TextureFormat.ASTC_8x5_UNORM },
+        { SurfaceFormat.ASTC_8x5_SRGB,  TextureFormat.ASTC_8x5_SRGB },
+        { SurfaceFormat.ASTC_8x6_UNORM, TextureFormat.ASTC_8x6_UNORM },
+        { SurfaceFormat.ASTC_8x6_SRGB,  TextureFormat.ASTC_8x6_SRGB },
+        { SurfaceFormat.ASTC_8x8_UNORM, TextureFormat.ASTC_8x8_UNORM },
+        { SurfaceFormat.ASTC_8x8_SRGB,  TextureFormat.ASTC_8x8_SRGB },
+        { SurfaceFormat.ASTC_10x5_UNORM, TextureFormat.ASTC_10x5_UNORM },
+        { SurfaceFormat.ASTC_10x5_SRGB,  TextureFormat.ASTC_10x5_SRGB },
+        { SurfaceFormat.ASTC_10x6_UNORM, TextureFormat.ASTC_10x6_UNORM },
+        { SurfaceFormat.ASTC_10x6_SRGB,  TextureFormat.ASTC_10x6_SRGB },
+        { SurfaceFormat.ASTC_10x8_UNORM, TextureFormat.ASTC_10x8_UNORM },
+        { SurfaceFormat.ASTC_10x8_SRGB,  TextureFormat.ASTC_10x8_SRGB },
+        { SurfaceFormat.ASTC_10x10_UNORM, TextureFormat.ASTC_10x10_UNORM },
+        { SurfaceFormat.ASTC_10x10_SRGB,  TextureFormat.ASTC_10x10_SRGB },
+        { SurfaceFormat.ASTC_12x10_UNORM, TextureFormat.ASTC_12x10_UNORM },
+        { SurfaceFormat.ASTC_12x10_SRGB,  TextureFormat.ASTC_12x10_SRGB },
+        { SurfaceFormat.ASTC_12x12_UNORM, TextureFormat.ASTC_12x12_UNORM },
+        { SurfaceFormat.ASTC_12x12_SRGB,  TextureFormat.ASTC_12x12_SRGB },
+    }; 
+    #endregion
 }

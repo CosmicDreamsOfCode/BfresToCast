@@ -18,16 +18,22 @@ Drag and drop BFRES or SARC files that contain BFRES onto the executable or set 
 - Tears of the Kingdom (does not work, requires external strings file, may not support)
 
 ## BfresToCast makes use of the following:
-- [ZstdNet](https://github.com/skbkontur/ZstdNet)
-- [Cast.NET](github.com/Scobalula/Cast.NET)
+- [Astc-Encoder-csharp](https://github.com/Ash39/Astc-Encoder-csharp/tree/2638331143a786f9e3a9e1e7916639d39877cfde)
 - [BCnEncoder.Net](https://github.com/Nominom/BCnEncoder.NET)
-- [SixLabors ImageSharp](https://github.com/SixLabors/ImageSharp)
+- [BCnEncoder.Net](https://github.com/Nominom/BCnEncoder.NET)
 - [BfresLibrary](https://github.com/KillzXGaming/BfresLibrary)
-- ImageLibrary by [KillzXGaming](https://github.com/KillzXGaming)(Unpublished)
+- [Cast.NET](https://github.com/Scobalula/Cast.NET)
+- [ImageLibrary](https://github.com/KillzXGaming/ImageLibrary)
+- [ImageSharp](https://github.com/SixLabors/ImageSharp)
 - [SarcLibrary](https://github.com/EPD-Libraries/SarcLibrary)
+- [SixLabors ImageSharp](https://github.com/SixLabors/ImageSharp)
 - [Syroot BinaryData](https://gitlab.com/Syroot/BinaryData)
 - [Syroot Maths](https://gitlab.com/Syroot/Maths)
 - [Syroot NintenTools NSW Bntx](https://github.com/KillzXGaming/LegacySwitchLibraries)
+- [ZstdNet](https://github.com/skbkontur/ZstdNet)
+- [image_dds](https://github.com/ScanMountGoat/image_dds)
+- [tegra_swizzle](https://github.com/KillzXGaming/tegra_swizzle)
+
 
 ## Special thanks:
 - KillzXGaming for easy to use libraries and being super helpful overall during this project and others :)

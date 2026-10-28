@@ -5,9 +5,9 @@ using BfresToCast.Utils;
 using Cast.NET;
 using Cast.NET.Nodes;
 using ImageLibrary;
-using ImageLibrary.Imaging.Switch;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
+using Syroot.NintenTools.NSW.Bntx;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -51,7 +51,7 @@ namespace BfresToCast
             {
                 Directory.CreateDirectory(dir);
             }
-            if (modelRes.Textures.Count > 0 && modelRes.IsPlatformSwitch)
+            if (modelRes.Textures.Count > 0 && modelRes.IsPlatformSwitch) // TODO: Support external textures
             {
                 Directory.CreateDirectory(texDir);
             }
@@ -62,39 +62,23 @@ namespace BfresToCast
 
             if (modelRes.IsPlatformSwitch)
             {
+                //BntxFile bntx = (BntxFile)modelRes.ExternalFiles["textures.bntx"].LoadedFileData;
+                // TODO: Loop through bntx instead
+                // TODO: Fix arrays
                 foreach (SwitchTexture tex in modelRes.Textures.Values)
                 {
-                    if (tex.ArrayLength != 1)
-                    {
-                        flagArrayErr = true;
-                        Console.WriteLine($"Skipping texture {tex.Name}, Arrays are not supported at this time.");
-                        continue;
-                    }
+                    GenericTextureBase genericTexture = TextureUtils.SwitchTextureToGeneric(tex, false);
 
-                    var data = tex.GetSwizzledData();
-                    var encoder = TextureUtils.FormatList[(int)tex.Format];
-
-                    var bw = ImageFormats.GetBlockWidth(encoder);
-                    var bh = ImageFormats.GetBlockHeight(encoder);
-                    var bd = ImageFormats.GetBlockDepth(encoder);
-                    var bpp = encoder.BitsPerPixel;
-
-                    var blk_sizes = (bw, bh, bd);
-
-                    var deswizzled = TextureConverter.Deswizzle(tex.Width, tex.Height, tex.Depth,
-                        1, tex.MipCount, blk_sizes, bpp, (uint)tex.Texture.TileMode, data);
+                    ExportSettings exportSettings = new ExportSettings() { UseComponentChannels = true };
 
                     if (TextureUtils.IsHDR(tex.Format))
                     {
-                        TextureUtils.ToDDS(tex, encoder, deswizzled, $"{texDir}/{tex.Name}.dds");
+                        genericTexture.Export($"{texDir}/{tex.Name}.dds", exportSettings);
                         Console.WriteLine($"Saved texture {tex.Name}");
                     }
                     else
                     {
-                        var rgba = encoder.Decode(deswizzled, tex.Width, tex.Height);
-                        rgba = TextureUtils.ConvertChannels(rgba, tex);
-                        var img = Image.LoadPixelData<Rgba32>(rgba, (int)tex.Width, (int)tex.Height);
-                        img.SaveAsPng($"{texDir}/{tex.Name}.png");
+                        genericTexture.Export($"{texDir}/{tex.Name}.png", exportSettings);
                         Console.WriteLine($"Saved texture {tex.Name}");
                     }
                 }
@@ -354,7 +338,7 @@ namespace BfresToCast
                 {
                     for (int j = 0; j < rawShape.Shape.VertexSkinCount; j++)
                     {
-                        bb.Values.Add((byte)model.Skeleton.MatrixToBoneList[(int)bone[j]]);
+                        bb.Values.Add((byte)model.Skeleton.MatrixToBoneList[(int)bone[j]]); // TODO: Fix skin counts > 4
                     }
                 }
                 else if (boneIndices is CastArrayProperty<ushort> bs)
