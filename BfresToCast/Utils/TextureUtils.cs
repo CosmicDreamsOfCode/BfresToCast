@@ -1,22 +1,50 @@
 using BfresLibrary.Switch;
+using BfresLibrary.Swizzling;
 using ImageLibrary;
 using ImageLibrary.PlatformSwizzle;
 using Syroot.NintenTools.NSW.Bntx.GFX;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace BfresToCast.Utils;
 
 public static class TextureUtils
 {
-    private static Dictionary<ChannelType, TextureChannelType> ChannelSwapList = new Dictionary<ChannelType, TextureChannelType>()
+    #region Switch
+
+    public static GenericTextureBase SwitchTextureToGeneric(SwitchTexture switchTexture, bool isOrin)
     {
-        { ChannelType.Zero, TextureChannelType.Zero },
-        { ChannelType.One, TextureChannelType.One },
-        { ChannelType.Red, TextureChannelType.Red },
-        { ChannelType.Green, TextureChannelType.Green },
-        { ChannelType.Blue, TextureChannelType.Blue },
-        { ChannelType.Alpha, TextureChannelType.Alpha },
-    };
+        GenericTextureBase genericTex = new GenericTextureBase();
+        genericTex.PlatformSwizzle = new PlatformSwizzleSwitch() { IsOrin = isOrin };
+
+        genericTex.Name = switchTexture.Name;
+        genericTex.Width = switchTexture.Width;
+        genericTex.Height = switchTexture.Height;
+        genericTex.Depth = switchTexture.Depth;
+        genericTex.Data = GetSwizzledData(switchTexture);
+        genericTex.RedComponent = ChannelSwapList[switchTexture.Texture.ChannelRed];
+        genericTex.GreenComponent = ChannelSwapList[switchTexture.Texture.ChannelGreen];
+        genericTex.BlueComponent = ChannelSwapList[switchTexture.Texture.ChannelBlue];
+        genericTex.AlphaComponent = ChannelSwapList[switchTexture.Texture.ChannelAlpha];
+        genericTex.MipCount = switchTexture.MipCount;
+        genericTex.ArrayCount = switchTexture.ArrayLength;
+        genericTex.ImageFormat = new ImageFormat(FormatList[switchTexture.Format]);
+        genericTex.Type = SurfaceDimList[switchTexture.Texture.SurfaceDim];
+
+        return genericTex;
+    }
+    public static byte[] GetSwizzledData(SwitchTexture texture)
+    {
+        List<byte[]> list = new List<byte[]>();
+
+        for (int m = 0; m < texture.MipCount; m++)
+        {
+            for (int a = 0; a < texture.ArrayLength; a++)
+            {
+                list.Add(texture.Texture.TextureData[a][m]);
+            }
+        }
+
+        return ByteUtils.CombineArray(list.ToArray());
+    }
 
     public static bool IsHDR(SurfaceFormat fmt)
     {
@@ -31,27 +59,28 @@ public static class TextureUtils
         }
     }
 
-    #region Switch
-    public static GenericTextureBase SwitchTextureToGeneric(SwitchTexture switchTexture, bool isOrin)
+    private static Dictionary<ChannelType, TextureChannelType> ChannelSwapList = new Dictionary<ChannelType, TextureChannelType>()
     {
-        GenericTextureBase genericTex = new GenericTextureBase();
-        genericTex.PlatformSwizzle = new PlatformSwizzleSwitch() { IsOrin = isOrin };
+        { ChannelType.Zero, TextureChannelType.Zero },
+        { ChannelType.One, TextureChannelType.One },
+        { ChannelType.Red, TextureChannelType.Red },
+        { ChannelType.Green, TextureChannelType.Green },
+        { ChannelType.Blue, TextureChannelType.Blue },
+        { ChannelType.Alpha, TextureChannelType.Alpha },
+    };
 
-        genericTex.Name = switchTexture.Name;
-        genericTex.Width = switchTexture.Width;
-        genericTex.Height = switchTexture.Height;
-        genericTex.Depth = switchTexture.Depth;
-        genericTex.Data = switchTexture.GetSwizzledData();
-        genericTex.RedComponent = ChannelSwapList[switchTexture.Texture.ChannelRed];
-        genericTex.GreenComponent = ChannelSwapList[switchTexture.Texture.ChannelGreen];
-        genericTex.BlueComponent = ChannelSwapList[switchTexture.Texture.ChannelBlue];
-        genericTex.AlphaComponent = ChannelSwapList[switchTexture.Texture.ChannelAlpha];
-        genericTex.MipCount = switchTexture.MipCount;
-        genericTex.ArrayCount = switchTexture.ArrayLength;
-        genericTex.ImageFormat = new ImageFormat(FormatList[switchTexture.Format]);
-
-        return genericTex;
-    }
+    public static Dictionary<SurfaceDim, TextureType> SurfaceDimList = new Dictionary<SurfaceDim, TextureType>()
+    {
+        { SurfaceDim.Dim1D, TextureType.Texture1D },
+        { SurfaceDim.Dim2D, TextureType.Texture2D },
+        { SurfaceDim.Dim3D, TextureType.Texture3D },
+        { SurfaceDim.DimCube, TextureType.TextureCube },
+        { SurfaceDim.Dim1DArray, TextureType.Texture2DArray}, //close enough ig
+        { SurfaceDim.Dim2DArray, TextureType.Texture2DArray },
+        { SurfaceDim.Dim2DMsaa, TextureType.Texture2D },
+        { SurfaceDim.Dim2DMsaaArray, TextureType.Texture2DArray },
+        { SurfaceDim.DimCubeArray, TextureType.TextureCubeArray },
+    };
 
     public static Dictionary<SurfaceFormat, TextureFormat> FormatList = new Dictionary<SurfaceFormat, TextureFormat>()
     {

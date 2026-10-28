@@ -71,7 +71,7 @@ namespace BfresToCast
 
                     ExportSettings exportSettings = new ExportSettings() { UseComponentChannels = true };
 
-                    if (TextureUtils.IsHDR(tex.Format))
+                    if (TextureUtils.IsHDR(tex.Format) || genericTexture.Type == TextureType.TextureCube)
                     {
                         genericTexture.Export($"{texDir}/{tex.Name}.dds", exportSettings);
                         Console.WriteLine($"Saved texture {tex.Name}");
