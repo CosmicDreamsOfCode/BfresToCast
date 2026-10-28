@@ -31,6 +31,7 @@ public static class TextureUtils
 
         return genericTex;
     }
+
     public static byte[] GetSwizzledData(SwitchTexture texture)
     {
         List<byte[]> list = new List<byte[]>();
