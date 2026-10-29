@@ -14,8 +14,10 @@ public static class TextureProcessor
         {
             SwitchTexture switchTexture = new SwitchTexture(bntx, texture);
             ExportSettings exportSettings = new ExportSettings { UseComponentChannels = true };
+            bool isOrin = bntx.PlatformTarget == "Ounc";
 
-            GenericTextureBase generic = TextureUtils.SwitchTextureToGeneric(switchTexture, false);
+            GenericTextureBase generic = TextureUtils.SwitchTextureToGeneric(switchTexture, isOrin);
+
             if (TextureUtils.IsHDR(switchTexture.Format) || generic.Type == TextureType.TextureCube)
             {
                 generic.Export(Path.Combine(outDir, $"{switchTexture.Name}.dds"), exportSettings);
