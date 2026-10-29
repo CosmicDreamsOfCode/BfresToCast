@@ -1,5 +1,7 @@
+using BfresLibrary;
 using BfresLibrary.Switch;
 using BfresToCast.Utils;
+using BymlLibrary;
 using ImageLibrary;
 using ImageLibrary.Formats.Encoders;
 using Syroot.NintenTools.NSW.Bntx;
@@ -8,6 +10,105 @@ namespace BfresToCast.Processors;
 
 public static class TextureProcessor
 {
+    public static string ExternalTextureDirectory = "";
+
+    public static bool Process(ResFile modelRes, List<string> referencedTextures, string outputDir)
+    {
+        bool success = true;
+
+        // Prepare external textures
+        List<string> externalTextures = new List<string>();
+        if (modelRes.VersionMajor >= 10 && referencedTextures.Count > 0 && modelRes.Textures.Count == 0)
+        {
+            if (ExternalTextureDirectory == "")
+            {
+                Console.WriteLine("Please provide a path to search for textures. (Press Enter to skip, Choice will be remembered for this instance)");
+
+                ExternalTextureDirectory = Console.ReadLine();
+
+                if (ExternalTextureDirectory == "")
+                {
+                    ExternalTextureDirectory = "!skip";
+                }
+            }
+
+            if (ExternalTextureDirectory != "!skip")
+            {
+                // Check if a lookup BYML exists
+                Byml byml = null;
+                if (modelRes.ExternalFiles.TryGetValue("textureTable.byml", out ExternalFile file))
+                {
+                    byml = Byml.FromBinary(file.Data);
+                }
+
+                foreach (string texture in referencedTextures)
+                {
+                    // Typical case
+                    string fileName = Path.Combine(ExternalTextureDirectory, $"{texture}.bntx.zs");
+                    if (File.Exists(fileName))
+                    {
+                        externalTextures.Add(fileName);
+                        continue;
+                    }
+
+                    if (byml != null)
+                    {
+                        // Lookup byml
+                        string texturefile = byml.GetMap()[texture].GetString();
+                        texturefile = Path.Combine(ExternalTextureDirectory, $"{texturefile}.bntx.zs");
+
+                        if (File.Exists(texturefile))
+                        {
+                            externalTextures.Add(texturefile);
+                            continue;
+                        }
+                    }
+
+                    Console.WriteLine($"Failed to find texture : {texture}");
+
+                    success = false;
+                }
+            }
+        }
+
+        if (externalTextures.Count > 0 || modelRes.Textures.Count > 0)
+        {
+            string textureOutputDir = Path.Combine(outputDir, "Textures");
+            //Directory.CreateDirectory(textureOutputDir);
+
+            if (modelRes.IsPlatformSwitch)
+            {
+                Directory.CreateDirectory(textureOutputDir); // Temp till Wii U textures are supported
+
+                if (modelRes.ExternalFiles.TryGetValue("textures.bntx", out ExternalFile file) && file.LoadedFileData is BntxFile bntx)
+                {
+                    success &= ProcessBNTX(bntx, textureOutputDir);
+                }
+
+                if (externalTextures.Count > 0)
+                {
+                    foreach (string texture in externalTextures)
+                    {
+                        MemoryStream stream = new MemoryStream();
+                        byte[] data = File.ReadAllBytes(texture);
+                        data = DecompressionHelpers.DecompressIfNeeded(data);
+                        stream = new MemoryStream(data);
+
+                        BntxFile exBntx = new BntxFile(stream);
+                        success &= ProcessBNTX(exBntx, textureOutputDir);
+                    }
+                }
+            }
+            else
+            {
+                Console.WriteLine("Wii U textures are unsupported at this time.");
+                success = false;
+            }
+        }
+
+        return success;
+    }
+
     public static bool ProcessBNTX(BntxFile bntx, string outDir)
     {
         foreach (Texture texture in bntx.Textures)

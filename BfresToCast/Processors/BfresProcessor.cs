@@ -1,6 +1,7 @@
 using BfresLibrary;
 using BfresLibrary.Switch;
 using BfresToCast.Utils;
+using BymlLibrary;
 using ImageLibrary;
 using Syroot.NintenTools.NSW.Bntx;
 
@@ -8,60 +9,66 @@ namespace BfresToCast.Processors;
 
 public static class BfresProcessor
 {
+    public static string ExternalTextureDirectory = "";
+
     public static bool Process(ResFile modelRes, string currentFile, bool isSARCFile)
     {
         bool success = true;
-        string dir = "";
+        Console.WriteLine($"Processing {modelRes.Name}...");
+
+        string outputDir = Path.GetDirectoryName(currentFile);
+
         if (!isSARCFile)
         {
-            // This is stupid, Bezel engine bfres uses the fmdb extension and the name inside the bfres has it too...
-            dir = $@"{Path.GetDirectoryName(currentFile)}/{Path.GetFileNameWithoutExtension(modelRes.Name)}";
+            // Bezel Engine names BFRES files with the FMDB extension and the name inside the BFRES has it too
+            // Conveniently this also handles newer games which have the project AND model name with a . seperator
+            outputDir = Path.Combine(outputDir, Path.GetFileNameWithoutExtension(modelRes.Name));
         }
         else
         {
-            //why did they have to just name the bfres "output" half the time
+            // LunchPack games often have the BFRES just titled "output", Pull the name from the name of the SARC instead in that case
             if (modelRes.Name.ToLower() == "output")
             {
+                // Have to remove the targets and extension
                 currentFile = currentFile.Replace(Path.GetExtension(currentFile), "");
-                dir = $@"{currentFile.Replace(".Nin_NX_NVN", "")}";
+                outputDir = $@"{currentFile.Replace(".Nin_NX_NVN", "")}";
             }
             else
             {
-                dir = $@"{Path.GetDirectoryName(currentFile)}/{modelRes.Name}";
+                outputDir = Path.Combine(outputDir, modelRes.Name);
             }
         }
 
-        string texDir = $@"{dir}/Textures";
+        List<string> referencedTextures = new List<string>();
+
         if (modelRes.Models.Count > 0)
         {
-            Directory.CreateDirectory(dir);
-        }
-        if (modelRes.Textures.Count > 0 && modelRes.IsPlatformSwitch) // TODO: Support external textures
-        {
-            Directory.CreateDirectory(texDir);
-        }
+            Directory.CreateDirectory(outputDir);
 
-        Console.WriteLine($"Processing {modelRes.Name}...");
-
-        if (modelRes.IsPlatformSwitch)
-        {
-            if (modelRes.ExternalFiles.TryGetValue("textures.bntx", out ExternalFile file) && file.LoadedFileData is BntxFile bntx)
+            // Process all models in this BFRES
+            foreach (Model model in modelRes.Models.Values)
             {
-                TextureProcessor.ProcessBNTX(bntx, texDir);
+                success &= ModelProcessor.Process(model, outputDir, modelRes.ByteOrder);
+
+                // Newer games might not have textures in the BFRES so we have to gather references
+                if (modelRes.VersionMajor >= 10)
+                {
+                    foreach (Material mat in model.Materials.Values)
+                    {
+                        foreach (TextureRef texRef in mat.TextureRefs)
+                        {
+                            if (!referencedTextures.Contains(texRef.Name))
+                            {
+                                referencedTextures.Add(texRef.Name);
+                            }
+                        }
+                    }
+                }
             }
-            // TODO: Support external textures
         }
-        else
-        {
-            Console.WriteLine("Wii U textures are unsupported at this time.");
-            return false;
-        }
-        
-        foreach (Model model in modelRes.Models.Values)
-        {
-            success &= ModelProcessor.Process(model, dir, modelRes.ByteOrder);
-        }
-        
+
+        success &= TextureProcessor.Process(modelRes, referencedTextures, outputDir);
+
         return success;
     }
 }

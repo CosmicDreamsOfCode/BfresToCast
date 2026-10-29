@@ -2,6 +2,7 @@ using BfresLibrary;
 using BfresToCast.Processors;
 using BfresToCast.Utils;
 using SarcLibrary;
+using Syroot.NintenTools.NSW.Bntx;
 using SarcHelper = BfresToCast.Utils.SarcHelper;
 
 namespace BfresToCast;
@@ -31,7 +32,7 @@ public class Program
             args = new string[] { path };
         }
 
-        bool flagArrayErr = false;
+        bool success = true;
 
         foreach (string file in args)
         {
@@ -64,7 +65,7 @@ public class Program
                                 newFile = Path.Combine(Path.GetDirectoryName(newFile), name);
                             }
                             
-                            BfresProcessor.Process(modelRes, newFile, true);
+                            success &= BfresProcessor.Process(modelRes, newFile, true);
                         }
                     }
                 }
@@ -73,15 +74,15 @@ public class Program
             {
                 stream = new MemoryStream(data);
                 ResFile modelRes = new ResFile(stream);
-                BfresProcessor.Process(modelRes, file, false);
+                success &= BfresProcessor.Process(modelRes, file, false);
             }
 
             Console.WriteLine();
         }
 
-        if (flagArrayErr)
+        if (!success)
         {
-            Console.WriteLine("Some textures were skipped, See above for info.");
+            Console.WriteLine("Some errors occurred, See above for info.");
             Console.WriteLine("Press any key to exit...");
             Console.ReadKey();
         }
