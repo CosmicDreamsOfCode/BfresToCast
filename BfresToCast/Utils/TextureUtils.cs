@@ -13,7 +13,14 @@ public static class TextureUtils
     public static GenericTextureBase SwitchTextureToGeneric(SwitchTexture switchTexture, bool isOrin)
     {
         GenericTextureBase genericTex = new GenericTextureBase();
-        genericTex.PlatformSwizzle = new PlatformSwizzleSwitch() { IsOrin = isOrin };
+        genericTex.PlatformSwizzle = new PlatformSwizzleSwitch()
+        { 
+            IsOrin = isOrin,
+            BlockHeightLog2 = (int)switchTexture.Texture.BlockHeightLog2,
+            TileMode = (uint)switchTexture.Texture.TileMode,
+            Alignment = (uint)switchTexture.Texture.Alignment,
+            MipOffsets = switchTexture.Texture.MipOffsets,
+        };
 
         genericTex.Name = switchTexture.Name;
         genericTex.Width = switchTexture.Width;

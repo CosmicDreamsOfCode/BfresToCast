@@ -45,31 +45,11 @@ public static class BfresProcessor
 
         if (modelRes.IsPlatformSwitch)
         {
-            //BntxFile bntx = (BntxFile)modelRes.ExternalFiles["textures.bntx"].LoadedFileData;
             if (modelRes.ExternalFiles.TryGetValue("textures.bntx", out ExternalFile file) && file.LoadedFileData is BntxFile bntx)
             {
                 TextureProcessor.ProcessBNTX(bntx, texDir);
             }
-            
-            // TODO: Loop through bntx instead
-            // TODO: Fix arrays
-            // foreach (SwitchTexture tex in modelRes.Textures.Values)
-            // {
-            //     GenericTextureBase genericTexture = TextureUtils.SwitchTextureToGeneric(tex, false);
-            //
-            //     ExportSettings exportSettings = new ExportSettings() { UseComponentChannels = true };
-            //
-            //     if (TextureUtils.IsHDR(tex.Format) || genericTexture.Type == TextureType.TextureCube)
-            //     {
-            //         genericTexture.Export($"{texDir}/{tex.Name}.dds", exportSettings);
-            //         Console.WriteLine($"Saved texture {tex.Name}");
-            //     }
-            //     else
-            //     {
-            //         genericTexture.Export($"{texDir}/{tex.Name}.png", exportSettings);
-            //         Console.WriteLine($"Saved texture {tex.Name}");
-            //     }
-            // }
+            // TODO: Support external textures
         }
         else
         {
