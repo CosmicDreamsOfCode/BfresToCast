@@ -1,4 +1,5 @@
 using BfresLibrary;
+using BfresToCast.Processors;
 using BfresToCast.Utils;
 using SarcLibrary;
 using SarcHelper = BfresToCast.Utils.SarcHelper;
@@ -62,8 +63,8 @@ public class Program
                             {
                                 newFile = Path.Combine(Path.GetDirectoryName(newFile), name);
                             }
-                            Converter.Convert(modelRes, newFile, true, out flagArrayErr);
-                            // TODO: Maybe we do texture stuff here and give them their own converter?
+                            
+                            BfresProcessor.Process(modelRes, newFile, true);
                         }
                     }
                 }
@@ -72,8 +73,7 @@ public class Program
             {
                 stream = new MemoryStream(data);
                 ResFile modelRes = new ResFile(stream);
-                Converter.Convert(modelRes, file, false, out flagArrayErr);
-                // TODO: Maybe we do texture stuff here and give them their own converter?
+                BfresProcessor.Process(modelRes, file, false);
             }
 
             Console.WriteLine();
