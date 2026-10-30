@@ -188,7 +188,7 @@ public static class ModelProcessor
             {
                 for (int j = 0; j < rawShape.Shape.VertexSkinCount; j++)
                 {
-                    bb.Values.Add((byte)model.Skeleton.MatrixToBoneList[(int)bone[j]]); // TODO: Fix skin counts > 4
+                    bb.Values.Add((byte)model.Skeleton.MatrixToBoneList[(int)bone[j]]);
                 }
             }
             else if (boneIndices is CastArrayProperty<ushort> bs)
