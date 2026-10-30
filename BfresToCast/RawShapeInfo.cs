@@ -40,20 +40,6 @@ public record RawShapeInfo()
     }
 
     /// <summary>
-    /// Constructs <see cref="VertexInfos"/>. This should not be called outside GetRawShape().
-    /// </summary>
-    // public void CreateVertexInfos()
-    // {
-    //     for (int i = 0; i < Verticies.Count; i++)
-    //     {
-    //         Vector3 vert = Verticies[i];
-    //         VertexInfo vertexInfo = new VertexInfo(i, vert, Normals.ElementAtOrDefault(i), Tangents.ElementAtOrDefault(i),
-    //             new Dictionary<int, float>());
-    //         VertexInfos.Add(vertexInfo);
-    //     }
-    // }
-
-    /// <summary>
     /// Enumerates over all vertices which have weights for the specified bone.
     /// </summary>
     /// <param name="boneIndex">The index of the bone to search for(this is the actual index found in Skeleton.BonesList, not in the weights)</param>
