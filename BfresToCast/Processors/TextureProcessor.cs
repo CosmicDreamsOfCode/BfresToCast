@@ -26,9 +26,10 @@ public static class TextureProcessor
             if (modelRes.VersionMajor >= 10 && referencedTextures.Count > 0 && modelRes.Textures.Count == 0)
             {
                 // User can put paths in this config to automatch to texture folder
-                if (File.Exists(ConfigName))
+                string configName = Path.GetFullPath(ConfigName);
+                if (File.Exists(configName))
                 {
-                    foreach (string line in File.ReadLines(ConfigName))
+                    foreach (string line in File.ReadLines(configName))
                     {
                         Config.Add(line);
                     }
@@ -99,7 +100,7 @@ public static class TextureProcessor
                     {
                         // Add this path to the config if it's not already there
                         Config.Add(ExternalTextureDirectory);
-                        File.WriteAllLines(ConfigName, Config);
+                        File.WriteAllLines(configName, Config);
                     }
                 }
             } // if (modelRes.VersionMajor >= 10 && referencedTextures.Count > 0 && modelRes.Textures.Count == 0)
