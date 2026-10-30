@@ -347,10 +347,6 @@ public static class ModelProcessor
                 
                 vertexIndicies.Add(i);
             }
-            
-            Console.WriteLine($"vertexCount: {rawShapeInfo.VertexInfos.Length}");
-            Console.WriteLine($"vertexPositions: {vertexPositions.ValueCount}");
-            Console.WriteLine($"vertexIndicies: {vertexIndicies.ValueCount}");
         }
     }
 
