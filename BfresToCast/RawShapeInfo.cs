@@ -33,6 +33,8 @@ public record RawShapeInfo()
     public List<float[]> BlendIndices { get; set; } = new List<float[]>();
     public List<float[]> BlendWeights { get; set; } = new List<float[]>();
 
+    public List<string> KeyShapes { get; } = new List<string>();
+
 
     public RawShapeInfo(Shape shape) : this()
     {

@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Numerics;
 using BfresLibrary;
 using BfresLibrary.Helpers;
@@ -76,6 +77,8 @@ public static class ModelProcessor
 
             ConsumeFaces(meshNode, rawShape);
             meshNode.Parent = modelNode;
+            meshNode.Hash = (ulong)Random.Shared.NextInt64();
+            ConsumeKeyShapes(modelNode, meshNode, rawShape);
             continue;
 
             // Transforms a vertex via the world transform(position relative to world origin) of the bone.
@@ -321,6 +324,37 @@ public static class ModelProcessor
         skeleton.CalculateLocalTransforms();
     }
 
+    static void ConsumeKeyShapes(ModelNode model, MeshNode meshNode, RawShapeInfo rawShapeInfo)
+    {
+        foreach (string shape in rawShapeInfo.KeyShapes)
+        {
+            BlendShapeNode blendShapeNode = model.AddNode<BlendShapeNode>();
+            blendShapeNode.AddString("n", shape);
+            blendShapeNode.AddValue("b", meshNode.Hash);
+
+            CastArrayProperty<uint> vertexIndicies = blendShapeNode.AddArray<uint>("vi");
+            CastArrayProperty<Vector3> vertexPositions = blendShapeNode.AddArray<Vector3>("vp");
+            for (uint i = 0; i < rawShapeInfo.VertexInfos.Length; i++)
+            {
+                VertexInfo vertexInfo = rawShapeInfo.VertexInfos[i];
+                if (vertexInfo.ShapeKeys.TryGetValue(shape, out VertexInfo.ModelVertData? data))
+                {
+                    vertexPositions.Add(data.Position);
+                }
+                else
+                {
+                    vertexPositions.Add(vertexInfo.Position);
+                }
+                
+                vertexIndicies.Add(i);
+            }
+            
+            Console.WriteLine($"vertexCount: {rawShapeInfo.VertexInfos.Length}");
+            Console.WriteLine($"vertexPositions: {vertexPositions.ValueCount}");
+            Console.WriteLine($"vertexIndicies: {vertexIndicies.ValueCount}");
+        }
+    }
+
     /// <summary>
     /// Gets the world rotation as a Matrix4x4 of the specified bone
     /// </summary>
@@ -360,6 +394,11 @@ public static class ModelProcessor
         for (int i = 0; i < rawShape.VertexInfos.Length; i++)
         {
             rawShape.VertexInfos[i] = new VertexInfo(i, Vector3.Zero, Vector3.Zero, Vector4.Zero, new Dictionary<int, float>());
+        }
+
+        foreach (string key in shape.KeyShapes.Keys)
+        {
+            rawShape.KeyShapes.Add(key);
         }
         
         VertexBufferHelper helper = new VertexBufferHelper(model.VertexBuffers[shape.VertexBufferIndex], byteOrder);
@@ -463,10 +502,10 @@ public static class ModelProcessor
             KeyShape keyShape = shape.KeyShapes[key];
             for (int i = 0; i < keyShape.TargetAttribIndices.Length; i++)
             {
-                if (!bufferToAttribMap.TryGetValue(i, out int attribIndex))
-                    break;
-
-                VertexBufferHelperAttrib overrideAttrib = helper.Attributes[keyShape.TargetAttribIndices[i]];
+                if (keyShape.TargetAttribIndices[i] == 0)
+                    continue;
+                
+                VertexBufferHelperAttrib overrideAttrib = helper.Attributes[keyShape.TargetAttribIndices[i] - 1];
 
                 for (int j = 0; j < overrideAttrib.Data.Length; j++)
                 {
