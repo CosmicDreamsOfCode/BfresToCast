@@ -18,15 +18,6 @@ public record RawShapeInfo()
     public VertexInfo[] VertexInfos { get; set; } = [];
     public List<int> Indicies { get; set; } = [];
 
-
-    // TODO: remove these
-    // It would be much nicer and easier to replace these outright with VertexInfos
-    // rn we are kinda half in half out, as some of our stuff use VertexInfos and some use these exposed buffers
-    // public List<Vector3> Verticies { get; set; } = Verticies;
-    // public List<Vector3> Normals { get; set; } = Normals;
-    // public List<Vector4> Tangents { get; set; } = Tangents;
-
-
     public Dictionary<byte, List<Vector2>> Uvs { get; set; } = new Dictionary<byte, List<Vector2>>();
     public Dictionary<byte, List<Vector4>> VertexColors { get; set; } = new Dictionary<byte, List<Vector4>>();
 

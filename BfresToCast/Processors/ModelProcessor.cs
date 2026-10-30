@@ -398,13 +398,9 @@ public static class ModelProcessor
         
         VertexBufferHelper helper = new VertexBufferHelper(model.VertexBuffers[shape.VertexBufferIndex], byteOrder);
         
-        // We need to be able to get the attribute index from its buffer index. The base shape buffers which can be overriden will always have a unique index. 
-        Dictionary<int, int> bufferToAttribMap = new Dictionary<int, int>();
-
         for (int index = 0; index < helper.Attributes.Count; index++)
         {
             VertexBufferHelperAttrib attribute = helper.Attributes[index];
-            bufferToAttribMap[attribute.BufferIndex] = index;
             
             switch (attribute.Name)
             {
