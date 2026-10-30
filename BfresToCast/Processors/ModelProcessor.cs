@@ -5,6 +5,10 @@ using BfresToCast.Utils;
 using Cast.NET;
 using Cast.NET.Nodes;
 using Syroot.BinaryData;
+using Syroot.Maths;
+using Vector2 = System.Numerics.Vector2;
+using Vector3 = System.Numerics.Vector3;
+using Vector4 = System.Numerics.Vector4;
 
 namespace BfresToCast.Processors;
 
@@ -173,12 +177,12 @@ public static class ModelProcessor
 
         for (int i = 0; i < rawShape.BlendIndices.Count; i++)
         {
-            Vector4 bone = rawShape.BlendIndices[i];
-            Vector4 weight;
+            float[] bone = rawShape.BlendIndices[i];
+            float[] weight;
             if (i < rawShape.BlendWeights.Count)
                 weight = rawShape.BlendWeights[i];
             else
-                weight = new Vector4(1, 0, 0, 0);
+                weight = [1, 0, 0, 0];
 
             if (boneIndices is CastArrayProperty<byte> bb)
             {
@@ -357,16 +361,14 @@ public static class ModelProcessor
         {
             switch (attribute.Name)
             {
-                case "_i0":
-                {
-                    rawShape.BlendIndices.AddRange(attribute.Data.Select(vector4F => new Vector4(vector4F.X, vector4F.Y, vector4F.Z, vector4F.W)));
-                }
-                    break;
-                case "_w0":
-                {
-                    rawShape.BlendWeights.AddRange(attribute.Data.Select(vector4F => new Vector4(vector4F.X, vector4F.Y, vector4F.Z, vector4F.W)));
-                }
-                    break;
+                // case "_i0":
+                // {
+                //     rawShape.BlendIndices.AddRange(attribute.Data.Select(vector4F => new Vector4(vector4F.X, vector4F.Y, vector4F.Z, vector4F.W)));
+                // } break;
+                // case "_w0":
+                // {
+                //     rawShape.BlendWeights.AddRange(attribute.Data.Select(vector4F => new Vector4(vector4F.X, vector4F.Y, vector4F.Z, vector4F.W)));
+                // } break;
                 case "_p0":
                 {
                     rawShape.Verticies.AddRange(attribute.Data.Select(vector4F => new Vector3(vector4F.X, vector4F.Y, vector4F.Z)));
@@ -400,8 +402,37 @@ public static class ModelProcessor
 
                         rawShape.VertexColors[color].AddRange(attribute.Data.Select(f => new Vector4(f.X, f.Y, f.Z, f.W)));
                     }
-                }
-                    break;
+                    else if (attribute.Name.StartsWith("_i"))
+                    {
+                        for (int i = 0; i < attribute.Data.Length; i++)
+                        {
+                            Vector4F element = attribute.Data[i];
+                            if (i >= rawShape.BlendIndices.Count)
+                            {
+                                rawShape.BlendIndices.Add([element.X, element.Y, element.Z, element.W]);
+                            }
+                            else
+                            {
+                                rawShape.BlendIndices[i] = [.. rawShape.BlendIndices[i], element.X, element.Y, element.Z, element.W];
+                            }
+                        }
+                    }
+                    else if (attribute.Name.StartsWith("_w"))
+                    {
+                        for (int i = 0; i < attribute.Data.Length; i++)
+                        {
+                            Vector4F element = attribute.Data[i];
+                            if (i >= rawShape.BlendWeights.Count)
+                            {
+                                rawShape.BlendWeights.Add([element.X, element.Y, element.Z, element.W]);
+                            }
+                            else
+                            {
+                                rawShape.BlendWeights[i] = [.. rawShape.BlendWeights[i], element.X, element.Y, element.Z, element.W];
+                            }
+                        }
+                    }
+                } break;
             }
         }
 
