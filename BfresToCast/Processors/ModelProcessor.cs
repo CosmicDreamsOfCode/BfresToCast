@@ -87,9 +87,7 @@ public static class ModelProcessor
                 Matrix4x4 boneMatrix = ModelUtils.GetWorldMatrix(bone, model.Skeleton);
                 foreach (VertexInfo vertexInfo in rawShape.GetVertexesWithWeight(boneIndex))
                 {
-                    vertexInfo.Position = Vector3.Transform(vertexInfo.Position, boneMatrix);
-                    vertexInfo.Normal = Vector3.TransformNormal(vertexInfo.Normal, boneMatrix);
-                    vertexInfo.Tangent = Vector4.Transform(vertexInfo.Tangent, boneMatrix);
+                    vertexInfo.Transform(boneMatrix);
                 }
             }
         }
@@ -100,7 +98,7 @@ public static class ModelProcessor
         return true;
     }
     
-    private static void AddMeshNodeArrays(MeshNode node, List<VertexInfo> vertexInfos)
+    private static void AddMeshNodeArrays(MeshNode node, VertexInfo[] vertexInfos)
     {
         node.AddArray("vp", vertexInfos.Select(info => info.Position));
         node.AddArray("vn", vertexInfos.Select(info => info.Normal));
@@ -139,21 +137,21 @@ public static class ModelProcessor
     static void ConsumeWeights(Model model, RawShapeInfo rawShape, MeshNode meshNode)
     {
         int boneSets = 1; // TODO: is it possible for models to have more than 1 boneset?
-        CastArrayProperty<float> boneWeights = meshNode.AddArray<float>("wv", new List<float>(boneSets * rawShape.Verticies.Count));
+        CastArrayProperty<float> boneWeights = meshNode.AddArray<float>("wv", new List<float>(boneSets * rawShape.VertexInfos.Length));
         meshNode.AddValue("mi", Math.Max(rawShape.Shape.VertexSkinCount, (byte)1)); // safety feature to ensure
 
         // We allocate bone indices depending on the type
         CastProperty boneIndices;
         if (model.Skeleton.BoneList.Count <= 0xFF)
-            boneIndices = meshNode.AddArray<byte>("wb", new(boneSets * rawShape.Verticies.Count));
+            boneIndices = meshNode.AddArray<byte>("wb", new(boneSets * rawShape.VertexInfos.Length));
         else if (model.Skeleton.BoneList.Count <= 0xFFFF)
-            boneIndices = meshNode.AddArray<ushort>("wb", new(boneSets * rawShape.Verticies.Count));
+            boneIndices = meshNode.AddArray<ushort>("wb", new(boneSets * rawShape.VertexInfos.Length));
         else
-            boneIndices = meshNode.AddArray<uint>("wb", new(boneSets * rawShape.Verticies.Count));
+            boneIndices = meshNode.AddArray<uint>("wb", new(boneSets * rawShape.VertexInfos.Length));
 
         if (rawShape.Shape.VertexSkinCount == 0)
         {
-            for (int i = 0; i < rawShape.Verticies.Count; i++)
+            for (int i = 0; i < rawShape.VertexInfos.Length; i++)
             {
                 int boneIndex = rawShape.Shape.BoneIndex;
 
@@ -234,7 +232,7 @@ public static class ModelProcessor
     static void ConsumeFaces(MeshNode root, RawShapeInfo rawShape)
     {
         int faceCount = rawShape.Indicies.Count;
-        if (rawShape.Verticies.Count < 0xff)
+        if (rawShape.VertexInfos.Length < 0xff)
         {
             CastArrayProperty<byte> faceIndices = root.AddArray<byte>("f", new(faceCount));
 
@@ -252,7 +250,7 @@ public static class ModelProcessor
                 }
             }
         }
-        else if (rawShape.Verticies.Count <= 0xFFFF)
+        else if (rawShape.VertexInfos.Length <= 0xFFFF)
         {
             var faceIndices = root.AddArray<ushort>("f", new(faceCount));
 
@@ -349,41 +347,47 @@ public static class ModelProcessor
     /// </summary>
     /// <param name="shape">The shape to get the data from</param>
     /// <param name="model">The model the shape belongs to</param>
-    /// <param name="resFile">The res file the model belongs to</param>
+    /// <param name="byteOrder">The ByteOrder of the res file this shape/model belongs to</param>
     /// <returns></returns>
     private static RawShapeInfo GetRawShape(Shape shape, Model model, ByteOrder byteOrder)
     {
         RawShapeInfo rawShape = new RawShapeInfo(shape);
         rawShape.Indicies.AddRange(shape.Meshes[0].GetIndices().Select(u => (int)u));
 
+        VertexBuffer vertexBuffer = model.VertexBuffers[shape.VertexBufferIndex];
+        uint vertexCount = vertexBuffer.VertexCount;
+        rawShape.VertexInfos = new VertexInfo[vertexCount];
+        for (int i = 0; i < rawShape.VertexInfos.Length; i++)
+        {
+            rawShape.VertexInfos[i] = new VertexInfo(i, Vector3.Zero, Vector3.Zero, Vector4.Zero, new Dictionary<int, float>());
+        }
+        
         VertexBufferHelper helper = new VertexBufferHelper(model.VertexBuffers[shape.VertexBufferIndex], byteOrder);
         foreach (VertexBufferHelperAttrib attribute in helper.Attributes)
         {
             switch (attribute.Name)
             {
-                // case "_i0":
-                // {
-                //     rawShape.BlendIndices.AddRange(attribute.Data.Select(vector4F => new Vector4(vector4F.X, vector4F.Y, vector4F.Z, vector4F.W)));
-                // } break;
-                // case "_w0":
-                // {
-                //     rawShape.BlendWeights.AddRange(attribute.Data.Select(vector4F => new Vector4(vector4F.X, vector4F.Y, vector4F.Z, vector4F.W)));
-                // } break;
                 case "_p0":
                 {
-                    rawShape.Verticies.AddRange(attribute.Data.Select(vector4F => new Vector3(vector4F.X, vector4F.Y, vector4F.Z)));
-                }
-                    break;
+                    for (int i = 0; i < attribute.Data.Length; i++)
+                    {
+                        rawShape.VertexInfos[i].Position = new Vector3(attribute.Data[i].X, attribute.Data[i].Y, attribute.Data[i].Z);
+                    }
+                } break;
                 case "_n0":
                 {
-                    rawShape.Normals.AddRange(attribute.Data.Select(vector4F => new Vector3(vector4F.X, vector4F.Y, vector4F.Z)));
-                }
-                    break;
+                    for (int i = 0; i < attribute.Data.Length; i++)
+                    {
+                        rawShape.VertexInfos[i].Normal = new Vector3(attribute.Data[i].X, attribute.Data[i].Y, attribute.Data[i].Z);
+                    }
+                } break;
                 case "_t0":
                 {
-                    rawShape.Tangents.AddRange(attribute.Data.Select(vector4F => new Vector4(vector4F.X, vector4F.Y, vector4F.Z, vector4F.W)));
-                }
-                    break;
+                    for (int i = 0; i < attribute.Data.Length; i++)
+                    {
+                        rawShape.VertexInfos[i].Tangent = new Vector4(attribute.Data[i].X, attribute.Data[i].Y, attribute.Data[i].Z, attribute.Data[i].W);
+                    }
+                } break;
                 default:
                 {
                     if (attribute.Name.StartsWith("_u"))
@@ -435,8 +439,7 @@ public static class ModelProcessor
                 } break;
             }
         }
-
-        rawShape.CreateVertexInfos();
+        
         return rawShape;
     }
 }

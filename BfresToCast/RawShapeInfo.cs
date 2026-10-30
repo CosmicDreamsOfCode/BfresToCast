@@ -7,49 +7,51 @@ namespace BfresToCast;
 /// A simplified interface to <see cref="BfresLibrary.Shape"/> with all the buffers exposed as lists.
 /// Also contains additional features such as <see cref="VertexInfos"/> and basic enumeration features.
 /// </summary>
-public record RawShapeInfo(List<Vector3> Verticies, List<Vector3> Normals, List<Vector4> Tangents, Dictionary<byte, List<Vector2>> Uvs, List<int> Indicies, List<float[]> BlendIndices, List<float[]> BlendWeights, Dictionary<byte, List<Vector4>> VertexColors, Shape Shape)
+public record RawShapeInfo()
 {
+    public Shape Shape { get; }
+    
     /// <summary>
     /// A list of all the compiled Verticies. Each vertex info has most of the important information about a vertex.
     /// These values are used to convert the bfres buffers into cast buffers
     /// </summary>
-    public List<VertexInfo> VertexInfos { get; private set; } = new List<VertexInfo>();
-    public List<int> Indicies { get; set; } = Indicies;
+    public VertexInfo[] VertexInfos { get; set; } = [];
+    public List<int> Indicies { get; set; } = [];
 
 
     // TODO: remove these
     // It would be much nicer and easier to replace these outright with VertexInfos
     // rn we are kinda half in half out, as some of our stuff use VertexInfos and some use these exposed buffers
-    public List<Vector3> Verticies { get; set; } = Verticies;
-    public List<Vector3> Normals { get; set; } = Normals;
-    public List<Vector4> Tangents { get; set; } = Tangents;
+    // public List<Vector3> Verticies { get; set; } = Verticies;
+    // public List<Vector3> Normals { get; set; } = Normals;
+    // public List<Vector4> Tangents { get; set; } = Tangents;
 
 
-    public Dictionary<byte, List<Vector2>> Uvs { get; set; } = Uvs;
-    public Dictionary<byte, List<Vector4>> VertexColors { get; set; } = VertexColors;
+    public Dictionary<byte, List<Vector2>> Uvs { get; set; } = new Dictionary<byte, List<Vector2>>();
+    public Dictionary<byte, List<Vector4>> VertexColors { get; set; } = new Dictionary<byte, List<Vector4>>();
 
-    public List<float[]> BlendIndices { get; set; } = BlendIndices;
-    public List<float[]> BlendWeights { get; set; } = BlendWeights;
+    public List<float[]> BlendIndices { get; set; } = new List<float[]>();
+    public List<float[]> BlendWeights { get; set; } = new List<float[]>();
 
 
-    public RawShapeInfo(Shape shape) : this(new List<Vector3>(), new List<Vector3>(), new List<Vector4>(),
-        new Dictionary<byte, List<Vector2>>(), new List<int>(), new List<float[]>(), new List<float[]>(), new Dictionary<byte, List<Vector4>>(), shape)
+    public RawShapeInfo(Shape shape) : this()
     {
+        Shape = shape;
     }
 
     /// <summary>
     /// Constructs <see cref="VertexInfos"/>. This should not be called outside GetRawShape().
     /// </summary>
-    public void CreateVertexInfos()
-    {
-        for (int i = 0; i < Verticies.Count; i++)
-        {
-            Vector3 vert = Verticies[i];
-            VertexInfo vertexInfo = new VertexInfo(i, vert, Normals.ElementAtOrDefault(i), Tangents.ElementAtOrDefault(i),
-                new Dictionary<int, float>());
-            VertexInfos.Add(vertexInfo);
-        }
-    }
+    // public void CreateVertexInfos()
+    // {
+    //     for (int i = 0; i < Verticies.Count; i++)
+    //     {
+    //         Vector3 vert = Verticies[i];
+    //         VertexInfo vertexInfo = new VertexInfo(i, vert, Normals.ElementAtOrDefault(i), Tangents.ElementAtOrDefault(i),
+    //             new Dictionary<int, float>());
+    //         VertexInfos.Add(vertexInfo);
+    //     }
+    // }
 
     /// <summary>
     /// Enumerates over all vertices which have weights for the specified bone.
