@@ -108,12 +108,12 @@ public static class TextureProcessor
 
     public static bool ProcessBNTX(BntxFile bntx, string outDir)
     {
+        ExportSettings exportSettings = new ExportSettings { UseComponentChannels = true };
+        bool isOrin = bntx.PlatformTarget == "Ounc";
+
         foreach (Texture texture in bntx.Textures)
         {
             SwitchTexture switchTexture = new SwitchTexture(bntx, texture);
-            ExportSettings exportSettings = new ExportSettings { UseComponentChannels = true };
-            bool isOrin = bntx.PlatformTarget == "Ounc";
-
             GenericTextureBase generic = TextureUtils.SwitchTextureToGeneric(switchTexture, isOrin);
 
             if (TextureUtils.IsHDR(switchTexture.Format) || generic.Type == TextureType.TextureCube)
@@ -139,6 +139,7 @@ public static class TextureProcessor
         {
             GenericTextureBase generic = TextureUtils.GX2TextureToGeneric(gx2Tex);
             generic.Export(Path.Combine(outDir, $"{gx2Tex.Name}.png"), exportSettings);
+
             Console.WriteLine($"Saved texture : {gx2Tex.Name}");
         }
 
