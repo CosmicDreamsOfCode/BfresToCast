@@ -363,31 +363,44 @@ public static class ModelProcessor
         }
         
         VertexBufferHelper helper = new VertexBufferHelper(model.VertexBuffers[shape.VertexBufferIndex], byteOrder);
-        foreach (VertexBufferHelperAttrib attribute in helper.Attributes)
+        
+        // We need to be able to get the attribute index from its buffer index. The base shape buffers which can be overriden will always have a unique index. 
+        Dictionary<int, int> bufferToAttribMap = new Dictionary<int, int>();
+
+        for (int index = 0; index < helper.Attributes.Count; index++)
         {
+            VertexBufferHelperAttrib attribute = helper.Attributes[index];
+            bufferToAttribMap[attribute.BufferIndex] = index;
+            
             switch (attribute.Name)
             {
                 case "_p0":
                 {
                     for (int i = 0; i < attribute.Data.Length; i++)
                     {
-                        rawShape.VertexInfos[i].Position = new Vector3(attribute.Data[i].X, attribute.Data[i].Y, attribute.Data[i].Z);
+                        rawShape.VertexInfos[i].Position = new Vector3(attribute.Data[i].X, attribute.Data[i].Y,
+                            attribute.Data[i].Z);
                     }
-                } break;
+                }
+                    break;
                 case "_n0":
                 {
                     for (int i = 0; i < attribute.Data.Length; i++)
                     {
-                        rawShape.VertexInfos[i].Normal = new Vector3(attribute.Data[i].X, attribute.Data[i].Y, attribute.Data[i].Z);
+                        rawShape.VertexInfos[i].Normal = new Vector3(attribute.Data[i].X, attribute.Data[i].Y,
+                            attribute.Data[i].Z);
                     }
-                } break;
+                }
+                    break;
                 case "_t0":
                 {
                     for (int i = 0; i < attribute.Data.Length; i++)
                     {
-                        rawShape.VertexInfos[i].Tangent = new Vector4(attribute.Data[i].X, attribute.Data[i].Y, attribute.Data[i].Z, attribute.Data[i].W);
+                        rawShape.VertexInfos[i].Tangent = new Vector4(attribute.Data[i].X, attribute.Data[i].Y,
+                            attribute.Data[i].Z, attribute.Data[i].W);
                     }
-                } break;
+                }
+                    break;
                 default:
                 {
                     if (attribute.Name.StartsWith("_u"))
@@ -396,7 +409,8 @@ public static class ModelProcessor
                         if (!rawShape.Uvs.ContainsKey(uv))
                             rawShape.Uvs.Add(uv, new List<Vector2>());
 
-                        rawShape.Uvs[uv].AddRange(attribute.Data.Select(vector4F => new Vector2(vector4F.X, vector4F.Y)));
+                        rawShape.Uvs[uv]
+                            .AddRange(attribute.Data.Select(vector4F => new Vector2(vector4F.X, vector4F.Y)));
                     }
                     else if (attribute.Name.StartsWith("_c"))
                     {
@@ -404,7 +418,8 @@ public static class ModelProcessor
                         if (!rawShape.VertexColors.ContainsKey(color))
                             rawShape.VertexColors.Add(color, new List<Vector4>());
 
-                        rawShape.VertexColors[color].AddRange(attribute.Data.Select(f => new Vector4(f.X, f.Y, f.Z, f.W)));
+                        rawShape.VertexColors[color]
+                            .AddRange(attribute.Data.Select(f => new Vector4(f.X, f.Y, f.Z, f.W)));
                     }
                     else if (attribute.Name.StartsWith("_i"))
                     {
@@ -417,7 +432,8 @@ public static class ModelProcessor
                             }
                             else
                             {
-                                rawShape.BlendIndices[i] = [.. rawShape.BlendIndices[i], element.X, element.Y, element.Z, element.W];
+                                rawShape.BlendIndices[i] =
+                                    [.. rawShape.BlendIndices[i], element.X, element.Y, element.Z, element.W];
                             }
                         }
                     }
@@ -432,14 +448,51 @@ public static class ModelProcessor
                             }
                             else
                             {
-                                rawShape.BlendWeights[i] = [.. rawShape.BlendWeights[i], element.X, element.Y, element.Z, element.W];
+                                rawShape.BlendWeights[i] =
+                                    [.. rawShape.BlendWeights[i], element.X, element.Y, element.Z, element.W];
                             }
                         }
                     }
-                } break;
+                }
+                    break;
             }
         }
-        
+
+        foreach (string key in shape.KeyShapes.Keys)
+        {
+            KeyShape keyShape = shape.KeyShapes[key];
+            for (int i = 0; i < keyShape.TargetAttribIndices.Length; i++)
+            {
+                if (!bufferToAttribMap.TryGetValue(i, out int attribIndex))
+                    break;
+
+                VertexBufferHelperAttrib overrideAttrib = helper.Attributes[keyShape.TargetAttribIndices[i]];
+
+                for (int j = 0; j < overrideAttrib.Data.Length; j++)
+                {
+                    VertexInfo vertInfo = rawShape.VertexInfos[j];
+                    if (!vertInfo.ShapeKeys.TryGetValue(key, out VertexInfo.ModelVertData? data))
+                    {
+                        data = new VertexInfo.ModelVertData(Vector3.Zero, Vector3.Zero, Vector4.Zero);
+                        vertInfo.ShapeKeys[key] = data;
+                    }
+
+                    if (overrideAttrib.Name.StartsWith("_p"))
+                    {
+                        data.Position = new Vector3(overrideAttrib.Data[j].X, overrideAttrib.Data[j].Y, overrideAttrib.Data[j].Z);
+                    }
+                    else if (overrideAttrib.Name.StartsWith("_n"))
+                    {
+                        data.Normal = new Vector3(overrideAttrib.Data[j].X, overrideAttrib.Data[j].Y, overrideAttrib.Data[j].Z);
+                    }
+                    else if (overrideAttrib.Name.StartsWith("_t"))
+                    {
+                        data.Tangent = new Vector4(overrideAttrib.Data[j].X, overrideAttrib.Data[j].Y, overrideAttrib.Data[j].Z, overrideAttrib.Data[j].W);
+                    }
+                }
+            }
+        }
+
         return rawShape;
     }
 }
