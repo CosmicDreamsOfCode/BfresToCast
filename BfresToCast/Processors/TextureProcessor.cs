@@ -18,58 +18,66 @@ public static class TextureProcessor
 
         // Prepare external textures
         List<string> externalTextures = new List<string>();
-        if (modelRes.VersionMajor >= 10 && referencedTextures.Count > 0 && modelRes.Textures.Count == 0)
+        try
         {
-            if (ExternalTextureDirectory == "")
+            if (modelRes.VersionMajor >= 10 && referencedTextures.Count > 0 && modelRes.Textures.Count == 0)
             {
-                Console.WriteLine("Please provide a path to search for textures. (Press Enter to skip, Choice will be remembered for this instance)");
-
-                ExternalTextureDirectory = Console.ReadLine();
-
                 if (ExternalTextureDirectory == "")
                 {
-                    ExternalTextureDirectory = "!skip";
-                }
-            }
+                    Console.WriteLine("Please provide a path to search for textures. (Press Enter to skip, Choice will be remembered for this instance)");
 
-            if (ExternalTextureDirectory != "!skip")
-            {
-                // Check if a lookup BYML exists
-                Byml byml = null;
-                if (modelRes.ExternalFiles.TryGetValue("textureTable.byml", out ExternalFile file))
-                {
-                    byml = Byml.FromBinary(file.Data);
-                }
+                    ExternalTextureDirectory = Console.ReadLine();
 
-                foreach (string texture in referencedTextures)
-                {
-                    // Typical case
-                    string fileName = Path.Combine(ExternalTextureDirectory, $"{texture}.bntx.zs");
-                    if (File.Exists(fileName))
+                    if (ExternalTextureDirectory == "")
                     {
-                        externalTextures.Add(fileName);
-                        continue;
+                        ExternalTextureDirectory = "!skip";
+                    }
+                }
+
+                if (ExternalTextureDirectory != "!skip")
+                {
+                    // Check if a lookup BYML exists
+                    Byml byml = null;
+                    if (modelRes.ExternalFiles.TryGetValue("textureTable.byml", out ExternalFile file))
+                    {
+                        byml = Byml.FromBinary(file.Data);
                     }
 
-                    if (byml != null)
+                    foreach (string texture in referencedTextures)
                     {
-                        // Lookup byml
-                        string texturefile = byml.GetMap()[texture].GetString();
-                        texturefile = Path.Combine(ExternalTextureDirectory, $"{texturefile}.bntx.zs");
-
-                        if (File.Exists(texturefile))
+                        // Typical case
+                        string fileName = Path.Combine(ExternalTextureDirectory, $"{texture}.bntx.zs");
+                        if (File.Exists(fileName))
                         {
-                            externalTextures.Add(texturefile);
+                            externalTextures.Add(fileName);
                             continue;
                         }
+
+                        if (byml != null)
+                        {
+                            // Lookup byml
+                            string texturefile = byml.GetMap()[texture].GetString();
+                            texturefile = Path.Combine(ExternalTextureDirectory, $"{texturefile}.bntx.zs");
+
+                            if (File.Exists(texturefile))
+                            {
+                                externalTextures.Add(texturefile);
+                                continue;
+                            }
+                        }
+
+                        Console.WriteLine($"Failed to find external texture : {texture}");
+
+                        success = false;
                     }
-
-                    Console.WriteLine($"Failed to find external texture : {texture}");
-
-                    success = false;
                 }
-            }
-        } // if (modelRes.VersionMajor >= 10 && referencedTextures.Count > 0 && modelRes.Textures.Count == 0)
+            } // if (modelRes.VersionMajor >= 10 && referencedTextures.Count > 0 && modelRes.Textures.Count == 0)
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine($"Failed to search for external textures: {e}");
+        }
+        
 
         if (externalTextures.Count > 0 || modelRes.Textures.Count > 0)
         {
@@ -93,13 +101,28 @@ public static class TextureProcessor
                         stream = new MemoryStream(data);
 
                         BntxFile exBntx = new BntxFile(stream);
-                        success &= ProcessBNTX(exBntx, textureOutputDir);
+                        try
+                        {
+                            success &= ProcessBNTX(exBntx, textureOutputDir);
+                        }
+                        catch (Exception e)
+                        {
+                            Console.WriteLine($"Failed to extract switch texture {exBntx.Name}: {e}");
+                            success = false;
+                        }
                     }
                 }
             }
             else
             {
-                success &= ProcessWiiU(modelRes, textureOutputDir);
+                try
+                {
+                    success &= ProcessWiiU(modelRes, textureOutputDir);
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine($"Failed to extract WiiU texture: {e}");
+                }
             }
         }
 

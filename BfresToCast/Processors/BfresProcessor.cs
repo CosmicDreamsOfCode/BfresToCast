@@ -48,7 +48,15 @@ public static class BfresProcessor
             // Process all models in this BFRES
             foreach (Model model in modelRes.Models.Values)
             {
-                success &= ModelProcessor.Process(model, outputDir, modelRes.ByteOrder);
+                try
+                {
+                    success &= ModelProcessor.Process(model, outputDir, modelRes.ByteOrder);
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine($"Failed to process model {model.Name}: {e}");
+                    success = false;
+                }
 
                 // Newer games might not have textures in the BFRES so we have to gather references
                 if (modelRes.VersionMajor >= 10)
@@ -67,7 +75,15 @@ public static class BfresProcessor
             }
         }
 
-        success &= TextureProcessor.Process(modelRes, referencedTextures, outputDir);
+        try
+        {
+            success &= TextureProcessor.Process(modelRes, referencedTextures, outputDir);
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine($"Texture processing failed: {e}");
+            success = false;
+        }
 
         return success;
     }
