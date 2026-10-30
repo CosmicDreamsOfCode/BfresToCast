@@ -64,22 +64,20 @@ public static class TextureProcessor
                         }
                     }
 
-                    Console.WriteLine($"Failed to find texture : {texture}");
+                    Console.WriteLine($"Failed to find external texture : {texture}");
 
                     success = false;
                 }
             }
-        }
+        } // if (modelRes.VersionMajor >= 10 && referencedTextures.Count > 0 && modelRes.Textures.Count == 0)
 
         if (externalTextures.Count > 0 || modelRes.Textures.Count > 0)
         {
             string textureOutputDir = Path.Combine(outputDir, "Textures");
-            //Directory.CreateDirectory(textureOutputDir);
+            Directory.CreateDirectory(textureOutputDir);
 
             if (modelRes.IsPlatformSwitch)
             {
-                Directory.CreateDirectory(textureOutputDir); // Temp till Wii U textures are supported
-
                 if (modelRes.ExternalFiles.TryGetValue("textures.bntx", out ExternalFile file) && file.LoadedFileData is BntxFile bntx)
                 {
                     success &= ProcessBNTX(bntx, textureOutputDir);
@@ -101,8 +99,7 @@ public static class TextureProcessor
             }
             else
             {
-                Console.WriteLine("Wii U textures are unsupported at this time.");
-                success = false;
+                success &= ProcessWiiU(modelRes, textureOutputDir);
             }
         }
 
@@ -128,14 +125,23 @@ public static class TextureProcessor
                 generic.Export(Path.Combine(outDir, $"{switchTexture.Name}.png"), exportSettings);
             }
             
-            Console.WriteLine($"Saved texture {switchTexture.Name}");
+            Console.WriteLine($"Saved texture : {switchTexture.Name}");
         }
         
         return true;
     }
 
-    public static bool ProcessWiiU(BfresLibrary.WiiU.Texture gx2Tex, string outDir)
+    public static bool ProcessWiiU(ResFile modelRes, string outDir)
     {
-        return false; // TODO: WiiU textures not supported atm
+        ExportSettings exportSettings = new ExportSettings { UseComponentChannels = true };
+
+        foreach (BfresLibrary.WiiU.Texture gx2Tex in modelRes.Textures.Values)
+        {
+            GenericTextureBase generic = TextureUtils.GX2TextureToGeneric(gx2Tex);
+            generic.Export(Path.Combine(outDir, $"{gx2Tex.Name}.png"), exportSettings);
+            Console.WriteLine($"Saved texture : {gx2Tex.Name}");
+        }
+
+        return true;
     }
 }

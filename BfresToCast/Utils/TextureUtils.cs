@@ -1,8 +1,13 @@
+using BfresLibrary.GX2;
 using BfresLibrary.Switch;
 using BfresLibrary.Swizzling;
 using ImageLibrary;
 using ImageLibrary.PlatformSwizzle;
 using Syroot.NintenTools.NSW.Bntx.GFX;
+using GX2AAMode = ImageLibrary.WiiU.GX2.GX2AAMode;
+using GX2SurfaceFormat = ImageLibrary.WiiU.GX2.GX2SurfaceFormat;
+using GX2TileMode = ImageLibrary.WiiU.GX2.GX2TileMode;
+using GX2SurfaceUse = ImageLibrary.WiiU.GX2.GX2SurfaceUse;
 
 namespace BfresToCast.Utils;
 
@@ -157,6 +162,67 @@ public static class TextureUtils
         { SurfaceFormat.ASTC_12x10_SRGB,  TextureFormat.ASTC_12x10_SRGB },
         { SurfaceFormat.ASTC_12x12_UNORM, TextureFormat.ASTC_12x12_UNORM },
         { SurfaceFormat.ASTC_12x12_SRGB,  TextureFormat.ASTC_12x12_SRGB },
-    }; 
-    #endregion
+    };
+
+    #endregion // Switch
+
+    #region Wii U
+    public static GenericTextureBase GX2TextureToGeneric(BfresLibrary.WiiU.Texture gx2Tex)
+    {
+        GenericTextureBase genericTex = new GenericTextureBase();
+
+        // TODO: See if there's a cleaner way to do this
+        PlatformSwizzleWiiU swizzle = new PlatformSwizzleWiiU((GX2SurfaceFormat)gx2Tex.Format);
+        swizzle.AAMode = (GX2AAMode)gx2Tex.AAMode;
+        swizzle.Alignment = gx2Tex.Alignment;
+        swizzle.SwizzleValue = gx2Tex.Swizzle;
+        swizzle.TileMode = (GX2TileMode)gx2Tex.TileMode;
+        swizzle.SurfaceUse = (GX2SurfaceUse)gx2Tex.Use;
+        swizzle.MipData = gx2Tex.MipData;
+        swizzle.MipOffsets = gx2Tex.MipOffsets;
+        swizzle.Pitch = gx2Tex.Pitch;
+
+        genericTex.PlatformSwizzle = swizzle;
+
+        genericTex.Name = gx2Tex.Name;
+        genericTex.Width = gx2Tex.Width;
+        genericTex.Height = gx2Tex.Height;
+        genericTex.Depth = gx2Tex.Depth;
+        genericTex.Data = gx2Tex.Data;
+        genericTex.RedComponent = GX2ChannelSwapList[gx2Tex.CompSelR];
+        genericTex.GreenComponent = GX2ChannelSwapList[gx2Tex.CompSelG];
+        genericTex.BlueComponent = GX2ChannelSwapList[gx2Tex.CompSelB];
+        genericTex.AlphaComponent = GX2ChannelSwapList[gx2Tex.CompSelA];
+        genericTex.MipCount = gx2Tex.MipCount;
+        genericTex.ArrayCount = gx2Tex.ArrayLength;
+        genericTex.ImageFormat = new ImageFormat(PlatformSwizzleWiiU.GX2FormatList[(GX2SurfaceFormat)gx2Tex.Format]);
+        genericTex.Type = GX2SurfaceDimList[gx2Tex.Dim];
+
+        return genericTex;
+    }
+
+    private static Dictionary<GX2CompSel, TextureChannelType> GX2ChannelSwapList = new Dictionary<GX2CompSel, TextureChannelType>()
+    {
+        { GX2CompSel.Always0, TextureChannelType.Zero },
+        { GX2CompSel.Always1, TextureChannelType.One },
+        { GX2CompSel.ChannelR, TextureChannelType.Red },
+        { GX2CompSel.ChannelG, TextureChannelType.Green },
+        { GX2CompSel.ChannelB, TextureChannelType.Blue },
+        { GX2CompSel.ChannelA, TextureChannelType.Alpha },
+    };
+
+    private static Dictionary<GX2SurfaceDim, TextureType> GX2SurfaceDimList = new Dictionary<GX2SurfaceDim, TextureType>()
+    {
+        { GX2SurfaceDim.Dim1D, TextureType.Texture1D },
+        { GX2SurfaceDim.Dim2D, TextureType.Texture2D },
+        { GX2SurfaceDim.Dim3D, TextureType.Texture3D },
+        { GX2SurfaceDim.DimCube, TextureType.TextureCube },
+        { GX2SurfaceDim.Dim1DArray, TextureType.Texture2DArray}, //close enough ig
+        { GX2SurfaceDim.Dim2DArray, TextureType.Texture2DArray },
+        { GX2SurfaceDim.Dim2DMsaa, TextureType.Texture2D },
+        { GX2SurfaceDim.Dim2DMsaaArray, TextureType.Texture2DArray },
+    };
+
+
+    #endregion // Wii U
 }

@@ -91,7 +91,8 @@ public static class ModelProcessor
         }
 
         CastWriter.Save($@"{outDir}/{model.Name}.cast", root);
-        Console.WriteLine($"Saved model {model.Name}");
+        Console.WriteLine($"Saved model : {model.Name}");
+
         return true;
     }
     
