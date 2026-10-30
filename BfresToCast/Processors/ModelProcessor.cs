@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using System.Numerics;
 using BfresLibrary;
 using BfresLibrary.Helpers;

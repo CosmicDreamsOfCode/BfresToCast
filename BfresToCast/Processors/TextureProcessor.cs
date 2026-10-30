@@ -3,7 +3,6 @@ using BfresLibrary.Switch;
 using BfresToCast.Utils;
 using BymlLibrary;
 using ImageLibrary;
-using ImageLibrary.Formats.Encoders;
 using Syroot.NintenTools.NSW.Bntx;
 
 namespace BfresToCast.Processors;
@@ -107,7 +106,7 @@ public static class TextureProcessor
                         }
                         catch (Exception e)
                         {
-                            Console.WriteLine($"Failed to extract switch texture {exBntx.Name}: {e}");
+                            Console.WriteLine($"Failed to process BNTX {exBntx.Name}: {e}");
                             success = false;
                         }
                     }
@@ -121,7 +120,7 @@ public static class TextureProcessor
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine($"Failed to extract WiiU texture: {e}");
+                    Console.WriteLine($"Failed to process Wii U textures: {e}");
                 }
             }
         }

@@ -1,9 +1,4 @@
 using BfresLibrary;
-using BfresLibrary.Switch;
-using BfresToCast.Utils;
-using BymlLibrary;
-using ImageLibrary;
-using Syroot.NintenTools.NSW.Bntx;
 
 namespace BfresToCast.Processors;
 

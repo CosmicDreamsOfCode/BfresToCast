@@ -2,7 +2,6 @@ using BfresLibrary;
 using BfresToCast.Processors;
 using BfresToCast.Utils;
 using SarcLibrary;
-using Syroot.NintenTools.NSW.Bntx;
 using SarcHelper = BfresToCast.Utils.SarcHelper;
 
 namespace BfresToCast;
