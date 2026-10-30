@@ -9,7 +9,11 @@ namespace BfresToCast.Processors;
 
 public static class TextureProcessor
 {
-    public static string ExternalTextureDirectory = "";
+    private static string ExternalTextureDirectory = "";
+
+    private static string ConfigName = "ExternalTextureFolders.cfg";
+
+    private static List<string> Config = new List<string>();
 
     public static bool Process(ResFile modelRes, List<string> referencedTextures, string outputDir)
     {
@@ -21,9 +25,30 @@ public static class TextureProcessor
         {
             if (modelRes.VersionMajor >= 10 && referencedTextures.Count > 0 && modelRes.Textures.Count == 0)
             {
+                // User can put paths in this config to automatch to texture folder
+                if (File.Exists(ConfigName))
+                {
+                    foreach (string line in File.ReadLines(ConfigName))
+                    {
+                        Config.Add(line);
+                    }
+
+                    foreach (string line in Config)
+                    {
+                        if (line.StartsWith("#"))
+                            continue;
+
+                        if (outputDir.Contains(Path.GetDirectoryName(line)))
+                        {
+                            ExternalTextureDirectory = line;
+                            break;
+                        }
+                    }
+                }
+
                 if (ExternalTextureDirectory == "")
                 {
-                    Console.WriteLine("Please provide a path to search for textures. (Press Enter to skip, Choice will be remembered for this instance)");
+                    Console.WriteLine("Please provide a path to search for textures. (Press Enter to skip)");
 
                     ExternalTextureDirectory = Console.ReadLine();
 
@@ -68,6 +93,13 @@ public static class TextureProcessor
                         Console.WriteLine($"Failed to find external texture : {texture}");
 
                         success = false;
+                    }
+
+                    if (success & !Config.Contains(ExternalTextureDirectory))
+                    {
+                        // Add this path to the config if it's not already there
+                        Config.Add(ExternalTextureDirectory);
+                        File.WriteAllLines(ConfigName, Config);
                     }
                 }
             } // if (modelRes.VersionMajor >= 10 && referencedTextures.Count > 0 && modelRes.Textures.Count == 0)
@@ -128,7 +160,7 @@ public static class TextureProcessor
         return success;
     }
 
-    public static bool ProcessBNTX(BntxFile bntx, string outDir)
+    private static bool ProcessBNTX(BntxFile bntx, string outDir)
     {
         ExportSettings exportSettings = new ExportSettings { UseComponentChannels = true };
         bool isOrin = bntx.PlatformTarget == "Ounc";
@@ -153,7 +185,7 @@ public static class TextureProcessor
         return true;
     }
 
-    public static bool ProcessWiiU(ResFile modelRes, string outDir)
+    private static bool ProcessWiiU(ResFile modelRes, string outDir)
     {
         ExportSettings exportSettings = new ExportSettings { UseComponentChannels = true };
 

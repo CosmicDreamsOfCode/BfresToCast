@@ -4,8 +4,6 @@ namespace BfresToCast.Processors;
 
 public static class BfresProcessor
 {
-    public static string ExternalTextureDirectory = "";
-
     public static bool Process(ResFile modelRes, string currentFile, bool isSARCFile)
     {
         bool success = true;

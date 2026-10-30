@@ -49,5 +49,10 @@
       <TargetPath>%(Filename)%(Extension)</TargetPath>
     </None>
   </ItemGroup>
+  <ItemGroup>
+    <None Update="ExternalTextureFolders.cfg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
 
 </Project>
