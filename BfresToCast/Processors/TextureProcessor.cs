@@ -87,7 +87,6 @@ public static class TextureProcessor
                         {
                             foreach (string variant in Directory.GetFiles(ExternalTextureDirectory, $"*{baseTextureName}*"))
                             {
-                                Console.WriteLine(variant);
                                 externalTextures.Add(variant);
                             }
                             continue;
