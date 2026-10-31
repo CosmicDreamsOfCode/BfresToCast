@@ -28,6 +28,12 @@ public static class TextureProcessor
             if (modelRes.ExternalFiles.TryGetValue("textureTable.byml", out ExternalFile file))
             {
                 byml = Byml.FromBinary(file.Data);
+                referencedTextures.Clear();
+
+                foreach (Byml tex in byml.GetMap().Values)
+                {
+                    referencedTextures.Add(tex.GetString());
+                }
             }
 
             bool refButNoTex = referencedTextures.Count > 0 && modelRes.Textures.Count == 0;
@@ -72,25 +78,26 @@ public static class TextureProcessor
                 {
                     foreach (string texture in referencedTextures)
                     {
-                        // Typical case
+                        int index = 0; // by default assume it is 0
+                        bool hasVariations = int.TryParse(Path.GetExtension(texture).TrimStart('.'), out index);
+
+                        string baseTextureName = Path.GetFileNameWithoutExtension(texture);
                         string fileName = Path.Combine(ExternalTextureDirectory, $"{texture}.bntx.zs");
+
+                        if (hasVariations)
+                        {
+                            foreach (string variant in Directory.GetFiles(ExternalTextureDirectory, $"*{baseTextureName}*"))
+                            {
+                                Console.WriteLine(variant);
+                                externalTextures.Add(variant);
+                            }
+                            continue;
+                        }
+
                         if (File.Exists(fileName))
                         {
                             externalTextures.Add(fileName);
                             continue;
-                        }
-
-                        if (byml != null)
-                        {
-                            // Lookup byml
-                            string texturefile = byml.GetMap()[texture].GetString();
-                            texturefile = Path.Combine(ExternalTextureDirectory, $"{texturefile}.bntx.zs");
-
-                            if (File.Exists(texturefile))
-                            {
-                                externalTextures.Add(texturefile);
-                                continue;
-                            }
                         }
 
                         Console.WriteLine($"Failed to find external texture : {texture}");
