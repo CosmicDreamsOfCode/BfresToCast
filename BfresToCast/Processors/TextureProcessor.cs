@@ -78,8 +78,7 @@ public static class TextureProcessor
                 {
                     foreach (string texture in referencedTextures)
                     {
-                        int index = 0; // by default assume it is 0
-                        bool hasVariations = int.TryParse(Path.GetExtension(texture).TrimStart('.'), out index);
+                        bool hasVariations = int.TryParse(Path.GetExtension(texture).TrimStart('.'), out int index);
 
                         string baseTextureName = Path.GetFileNameWithoutExtension(texture);
                         string fileName = Path.Combine(ExternalTextureDirectory, $"{texture}.bntx.zs");
