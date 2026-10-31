@@ -23,7 +23,16 @@ public static class TextureProcessor
         List<string> externalTextures = new List<string>();
         try
         {
-            if (modelRes.VersionMajor >= 10 && referencedTextures.Count > 0 && modelRes.Textures.Count == 0)
+            // Check if a lookup BYML exists
+            Byml byml = null;
+            if (modelRes.ExternalFiles.TryGetValue("textureTable.byml", out ExternalFile file))
+            {
+                byml = Byml.FromBinary(file.Data);
+            }
+
+            bool refButNoTex = referencedTextures.Count > 0 && modelRes.Textures.Count == 0;
+
+            if ((modelRes.VersionMajor >= 10 && refButNoTex) || byml != null)
             {
                 // User can put paths in this config to automatch to texture folder
                 string configName = Path.GetFullPath(ConfigName);
@@ -61,13 +70,6 @@ public static class TextureProcessor
 
                 if (ExternalTextureDirectory != "!skip")
                 {
-                    // Check if a lookup BYML exists
-                    Byml byml = null;
-                    if (modelRes.ExternalFiles.TryGetValue("textureTable.byml", out ExternalFile file))
-                    {
-                        byml = Byml.FromBinary(file.Data);
-                    }
-
                     foreach (string texture in referencedTextures)
                     {
                         // Typical case
