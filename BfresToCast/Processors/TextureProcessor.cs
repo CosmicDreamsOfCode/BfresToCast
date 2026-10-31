@@ -96,7 +96,7 @@ public static class TextureProcessor
                         success = false;
                     }
 
-                    if (success & !Config.Contains(ExternalTextureDirectory))
+                    if (success && !Config.Contains(ExternalTextureDirectory))
                     {
                         // Add this path to the config if it's not already there
                         Config.Add(ExternalTextureDirectory);
