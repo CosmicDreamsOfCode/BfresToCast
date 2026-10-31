@@ -11,7 +11,7 @@ public static class TextureProcessor
 {
     private static string ExternalTextureDirectory = "";
 
-    private static string ConfigName = "ExternalTextureFolders.cfg";
+    private static string ConfigName = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ExternalTextureFolders.cfg");
 
     private static List<string> Config = new List<string>();
 
@@ -108,6 +108,7 @@ public static class TextureProcessor
         catch (Exception e)
         {
             Console.WriteLine($"Failed to search for external textures: {e}");
+            success = false;
         }
         
 
@@ -154,6 +155,7 @@ public static class TextureProcessor
                 catch (Exception e)
                 {
                     Console.WriteLine($"Failed to process Wii U textures: {e}");
+                    success = false;
                 }
             }
         }
