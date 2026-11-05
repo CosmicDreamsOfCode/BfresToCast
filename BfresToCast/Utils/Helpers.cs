@@ -68,39 +68,45 @@ namespace BfresToCast.Utils
 
             // Alternatively just get the user to drop those files in a folder next to the exe or something. Toolbox does that
 
-            ProcessConfig(path);
-            string dictSarc = Path.Combine(GameRootDirectory, "ZsDic.pack.zs");
-
-            if (File.Exists(dictSarc))
+            if (ZstdDictionaries.Count == 0)
             {
-                byte[] data = File.ReadAllBytes(dictSarc);
-                DecompressionHelpers.DecompressIfNeeded(data);
+                ProcessConfig(path);
+                string dictSarc = Path.Combine(GameRootDirectory, "ZsDic.pack.zs");
 
-                Sarc sarc = Sarc.FromBinary(data);
-
-                // this probably won't work.
-                // might need to reference this impl
-                // https://github.com/KillzXGaming/Switch-Toolbox/blob/4b5f4dc5b71615baee702be9ab5627fba6ebffbf/Switch_Toolbox_Library/Compression/Formats/Zstb.cs#L114
-                foreach (KeyValuePair<string, ArraySegment<byte>> sarcFile in sarc)
+                if (File.Exists(dictSarc))
                 {
-                    ZstdDictionaries.Add(sarcFile.Key, sarcFile.Value.ToArray());
+                    byte[] data = File.ReadAllBytes(dictSarc);
+                    DecompressionHelpers.DecompressIfNeeded(data);
+
+                    Sarc sarc = Sarc.FromBinary(data);
+
+                    // this probably won't work.
+                    // might need to reference this impl
+                    // https://github.com/KillzXGaming/Switch-Toolbox/blob/4b5f4dc5b71615baee702be9ab5627fba6ebffbf/Switch_Toolbox_Library/Compression/Formats/Zstb.cs#L114
+                    foreach (KeyValuePair<string, ArraySegment<byte>> sarcFile in sarc)
+                    {
+                        ZstdDictionaries.Add(sarcFile.Key, sarcFile.Value.ToArray());
+                    }
                 }
             }
         }
 
         public static void GetExternalBinaryStrings(string path)
         {
-            ProcessConfig(path);
-
-            string ebsPath = Path.Combine(GameRootDirectory, "ExternalBinaryString.bfres.zs");
-
-            if (File.Exists(ebsPath))
+            if (ExternalStringsFile != null)
             {
-                byte[] data = File.ReadAllBytes(ebsPath);
-                DecompressionHelpers.DecompressIfNeeded(data, ebsPath);
+                ProcessConfig(path);
 
-                MemoryStream stream = new MemoryStream(data);
-                ExternalStringsFile = new ResFile(stream, true);
+                string ebsPath = Path.Combine(GameRootDirectory, "ExternalBinaryString.bfres.zs");
+
+                if (File.Exists(ebsPath))
+                {
+                    byte[] data = File.ReadAllBytes(ebsPath);
+                    DecompressionHelpers.DecompressIfNeeded(data, ebsPath);
+
+                    MemoryStream stream = new MemoryStream(data);
+                    ExternalStringsFile = new ResFile(stream, true);
+                }
             }
         }
 

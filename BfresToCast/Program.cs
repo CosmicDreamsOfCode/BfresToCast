@@ -35,9 +35,13 @@ public class Program
 
         foreach (string file in args)
         {
+            // we have to process these first
+            ExternalFileHelpers.GetZstdDictionaries(file);
+            ExternalFileHelpers.GetExternalBinaryStrings(file);
+
             MemoryStream stream = new MemoryStream();
             byte[] data = File.ReadAllBytes(file);
-            data = DecompressionHelpers.DecompressIfNeeded(data); // TODO fix args
+            data = DecompressionHelpers.DecompressIfNeeded(data, file);
             bool isSarc = SarcHelper.CheckSarc(data);
             if (isSarc)
             {
@@ -48,7 +52,7 @@ public class Program
                 {
                     foreach (KeyValuePair<string, ArraySegment<byte>> sarcFile in sarc)
                     {
-                        byte[] fileData = DecompressionHelpers.DecompressIfNeeded(sarcFile.Value.ToArray()); // TODO fix args
+                        byte[] fileData = DecompressionHelpers.DecompressIfNeeded(sarcFile.Value.ToArray());
                         if (SarcHelper.CheckSarc(fileData))
                         {
                             Sarc subSarc = Sarc.FromBinary(fileData);
