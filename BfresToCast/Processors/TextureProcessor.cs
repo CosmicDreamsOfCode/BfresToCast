@@ -1,7 +1,6 @@
 using BfresLibrary;
 using BfresLibrary.Switch;
 using BfresToCast.Utils;
-using BymlLibrary;
 using ImageLibrary;
 using Syroot.NintenTools.NSW.Bntx;
 
@@ -23,94 +22,7 @@ public static class TextureProcessor
         List<string> externalTextures = new List<string>();
         try
         {
-            // Check if a lookup BYML exists
-            Byml byml = null;
-            if (modelRes.ExternalFiles.TryGetValue("textureTable.byml", out ExternalFile file))
-            {
-                byml = Byml.FromBinary(file.Data);
-                referencedTextures.Clear();
-
-                foreach (Byml tex in byml.GetMap().Values)
-                {
-                    referencedTextures.Add(tex.GetString());
-                }
-            }
-
-            bool refButNoTex = referencedTextures.Count > 0 && modelRes.Textures.Count == 0;
-
-            if ((modelRes.VersionMajor >= 10 && refButNoTex) || byml != null)
-            {
-                // User can put paths in this config to automatch to texture folder
-                string configName = Path.GetFullPath(ConfigName);
-                if (File.Exists(configName))
-                {
-                    foreach (string line in File.ReadLines(configName))
-                    {
-                        Config.Add(line);
-                    }
-
-                    foreach (string line in Config)
-                    {
-                        if (line.StartsWith("#"))
-                            continue;
-
-                        if (outputDir.Contains(Path.GetDirectoryName(line)))
-                        {
-                            ExternalTextureDirectory = line;
-                            break;
-                        }
-                    }
-                }
-
-                if (ExternalTextureDirectory == "")
-                {
-                    Console.WriteLine("Please provide a path to search for textures. (Press Enter to skip)");
-
-                    ExternalTextureDirectory = Console.ReadLine();
-
-                    if (ExternalTextureDirectory == "")
-                    {
-                        ExternalTextureDirectory = "!skip";
-                    }
-                }
-
-                if (ExternalTextureDirectory != "!skip")
-                {
-                    foreach (string texture in referencedTextures)
-                    {
-                        bool hasVariations = int.TryParse(Path.GetExtension(texture).TrimStart('.'), out int index);
-
-                        string baseTextureName = Path.GetFileNameWithoutExtension(texture);
-                        string fileName = Path.Combine(ExternalTextureDirectory, $"{texture}.bntx.zs");
-
-                        if (hasVariations)
-                        {
-                            foreach (string variant in Directory.GetFiles(ExternalTextureDirectory, $"*{baseTextureName}*"))
-                            {
-                                externalTextures.Add(variant);
-                            }
-                            continue;
-                        }
-
-                        if (File.Exists(fileName))
-                        {
-                            externalTextures.Add(fileName);
-                            continue;
-                        }
-
-                        Console.WriteLine($"Failed to find external texture : {texture}");
-
-                        success = false;
-                    }
-
-                    if (success && !Config.Contains(ExternalTextureDirectory))
-                    {
-                        // Add this path to the config if it's not already there
-                        Config.Add(ExternalTextureDirectory);
-                        File.WriteAllLines(configName, Config);
-                    }
-                }
-            } // if (modelRes.VersionMajor >= 10 && referencedTextures.Count > 0 && modelRes.Textures.Count == 0)
+            success &= ExternalFileHelpers.GetExternalTextures(modelRes, referencedTextures, outputDir, out externalTextures);
         }
         catch (Exception e)
         {
@@ -118,7 +30,6 @@ public static class TextureProcessor
             success = false;
         }
         
-
         if (externalTextures.Count > 0 || modelRes.Textures.Count > 0)
         {
             string textureOutputDir = Path.Combine(outputDir, "Textures");
@@ -137,7 +48,7 @@ public static class TextureProcessor
                     {
                         MemoryStream stream = new MemoryStream();
                         byte[] data = File.ReadAllBytes(texture);
-                        data = DecompressionHelpers.DecompressIfNeeded(data);
+                        data = DecompressionHelpers.DecompressIfNeeded(data, texture);
                         stream = new MemoryStream(data);
 
                         BntxFile exBntx = new BntxFile(stream);

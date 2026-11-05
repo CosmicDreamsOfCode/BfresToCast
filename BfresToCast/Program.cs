@@ -37,7 +37,7 @@ public class Program
         {
             MemoryStream stream = new MemoryStream();
             byte[] data = File.ReadAllBytes(file);
-            data = DecompressionHelpers.DecompressIfNeeded(data);
+            data = DecompressionHelpers.DecompressIfNeeded(data); // TODO fix args
             bool isSarc = SarcHelper.CheckSarc(data);
             if (isSarc)
             {
@@ -48,7 +48,7 @@ public class Program
                 {
                     foreach (KeyValuePair<string, ArraySegment<byte>> sarcFile in sarc)
                     {
-                        byte[] fileData = DecompressionHelpers.DecompressIfNeeded(sarcFile.Value.ToArray());
+                        byte[] fileData = DecompressionHelpers.DecompressIfNeeded(sarcFile.Value.ToArray()); // TODO fix args
                         if (SarcHelper.CheckSarc(fileData))
                         {
                             Sarc subSarc = Sarc.FromBinary(fileData);
