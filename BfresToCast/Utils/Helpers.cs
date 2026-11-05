@@ -1,5 +1,6 @@
 ﻿using BfresLibrary;
 using BymlLibrary;
+using BymlLibrary.Nodes.Containers;
 using SarcLibrary;
 using System.Text;
 using ZstdNet;
@@ -17,6 +18,16 @@ namespace BfresToCast.Utils
         public static ResFile ExternalStringsFile;
 
         public static byte[] ZstdDictionary;
+
+        public static Dictionary<string,string> TextureRemaps = new Dictionary<string,string>();
+
+        public static void SetUpExternalFiles(string path)
+        {
+            ProcessConfig(path);
+            GetZstdDictionary(path);
+            GetExternalBinaryStrings(path);
+            GetTextureRemaps(path);
+        }
 
         public static void ProcessConfig(string pathToSearch) // TODO: fix it adding to Config for every time this is called (oops)
         {
@@ -64,7 +75,6 @@ namespace BfresToCast.Utils
         {
             if (ZstdDictionary == null)
             {
-                ProcessConfig(path);
                 string dictSarc = Path.Combine(GameRootDirectory, @"Pack\ZsDic.pack.zs");
 
                 if (File.Exists(dictSarc))
@@ -86,8 +96,6 @@ namespace BfresToCast.Utils
         {
             if (ExternalStringsFile == null)
             {
-                ProcessConfig(path);
-
                 string ebsPath = Path.Combine(GameRootDirectory, @"Shader\ExternalBinaryString.bfres.zs");
 
                 if (File.Exists(ebsPath))
@@ -97,6 +105,29 @@ namespace BfresToCast.Utils
 
                     MemoryStream stream = new MemoryStream(data);
                     ExternalStringsFile = new ResFile(stream, true);
+                }
+            }
+        }
+
+        public static void GetTextureRemaps(string path)
+        {
+            if (TextureRemaps.Count == 0)
+            {
+                foreach (string file in Directory.EnumerateFiles(Path.Combine(GameRootDirectory, @"System\Gfx")))
+                {
+                    if (Path.GetFileName(file).StartsWith("UnifyTex"))
+                    {
+                        byte[] data = File.ReadAllBytes(file);
+                        data = DecompressionHelpers.DecompressIfNeeded(data);
+
+                        Byml byml = Byml.FromBinary(data);
+                        BymlMap map = byml.GetMap();
+                        foreach (string tex in map.Keys)
+                        {
+                            TextureRemaps.Add(tex, map[tex].GetString());
+                        }
+                        break;
+                    }
                 }
             }
         }
@@ -123,19 +154,25 @@ namespace BfresToCast.Utils
 
             if ((modelRes.VersionMajor >= 10 && refButNoTex) || byml != null)
             {
-
-                ProcessConfig(outputDir);
-
                 if (GameRootDirectory != "!skip")
                 {
+                    List<string> remappedTextures = new List<string>();
+
                     foreach (string texture in referencedTextures)
                     {
-                        bool hasVariations = int.TryParse(Path.GetExtension(texture).TrimStart('.'), out int index);
+                        string texName = texture;
+                        if (TextureRemaps.ContainsKey(texture))
+                        {
+                            texName = TextureRemaps[texName];
+                            remappedTextures.Add($"{texture} -> {texName}");
+                        }
 
-                        string baseTextureName = Path.GetFileNameWithoutExtension(texture);
+                        bool hasVariations = int.TryParse(Path.GetExtension(texName).TrimStart('.'), out int index);
+
+                        string baseTextureName = Path.GetFileNameWithoutExtension(texName);
                         string textureDirectory = Path.Combine(GameRootDirectory, "Tex");
 
-                        string fileName = Path.Combine(textureDirectory, $"{texture}.bntx.zs");
+                        string fileName = Path.Combine(textureDirectory, $"{texName}.bntx.zs");
 
                         if (hasVariations)
                         {
@@ -152,9 +189,14 @@ namespace BfresToCast.Utils
                             continue;
                         }
 
-                        Console.WriteLine($"Failed to find external texture : {texture}");
+                        Console.WriteLine($"Failed to find external texture : {texName}");
 
                         success = false;
+                    }
+
+                    if (success)
+                    {
+                        File.WriteAllLines(Path.Combine(outputDir, "RemappedTextures.txt"), remappedTextures);
                     }
 
                     if (success && !Config.Contains(GameRootDirectory))

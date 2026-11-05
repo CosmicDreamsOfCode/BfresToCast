@@ -2,6 +2,7 @@ using BfresLibrary;
 using BfresToCast.Processors;
 using BfresToCast.Utils;
 using SarcLibrary;
+using System.IO;
 using SarcHelper = BfresToCast.Utils.SarcHelper;
 
 namespace BfresToCast;
@@ -35,9 +36,7 @@ public class Program
 
         foreach (string file in args)
         {
-            // we have to process these first
-            ExternalFileHelpers.GetZstdDictionary(file);
-            ExternalFileHelpers.GetExternalBinaryStrings(file);
+            ExternalFileHelpers.SetUpExternalFiles(file);
 
             MemoryStream stream = new MemoryStream();
             byte[] data = File.ReadAllBytes(file);
