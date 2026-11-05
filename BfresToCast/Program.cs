@@ -36,12 +36,12 @@ public class Program
         foreach (string file in args)
         {
             // we have to process these first
-            ExternalFileHelpers.GetZstdDictionaries(file);
+            ExternalFileHelpers.GetZstdDictionary(file);
             ExternalFileHelpers.GetExternalBinaryStrings(file);
 
             MemoryStream stream = new MemoryStream();
             byte[] data = File.ReadAllBytes(file);
-            data = DecompressionHelpers.DecompressIfNeeded(data, file);
+            data = DecompressionHelpers.DecompressIfNeeded(data);
             bool isSarc = SarcHelper.CheckSarc(data);
             if (isSarc)
             {

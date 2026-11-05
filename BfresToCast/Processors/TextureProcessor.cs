@@ -8,12 +8,6 @@ namespace BfresToCast.Processors;
 
 public static class TextureProcessor
 {
-    private static string ExternalTextureDirectory = "";
-
-    private static string ConfigName = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ExternalTextureFolders.cfg");
-
-    private static List<string> Config = new List<string>();
-
     public static bool Process(ResFile modelRes, List<string> referencedTextures, string outputDir)
     {
         bool success = true;
@@ -48,7 +42,7 @@ public static class TextureProcessor
                     {
                         MemoryStream stream = new MemoryStream();
                         byte[] data = File.ReadAllBytes(texture);
-                        data = DecompressionHelpers.DecompressIfNeeded(data, texture);
+                        data = DecompressionHelpers.DecompressIfNeeded(data);
                         stream = new MemoryStream(data);
 
                         BntxFile exBntx = new BntxFile(stream);

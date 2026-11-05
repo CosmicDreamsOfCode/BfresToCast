@@ -16,9 +16,9 @@ namespace BfresToCast.Utils
 
         public static ResFile ExternalStringsFile;
 
-        public static Dictionary<string, byte[]> ZstdDictionaries = new Dictionary<string, byte[]>();
+        public static byte[] ZstdDictionary;
 
-        public static void ProcessConfig(string pathToSearch)
+        public static void ProcessConfig(string pathToSearch) // TODO: fix it adding to Config for every time this is called (oops)
         {
             // User can put paths in this config to automatch to texture folder
             string configName = Path.GetFullPath(ConfigName);
@@ -60,32 +60,23 @@ namespace BfresToCast.Utils
             File.WriteAllLines(Path.GetFullPath(ConfigName), lines);
         }
 
-        public static void GetZstdDictionaries(string path)
+        public static void GetZstdDictionary(string path)
         {
-            // From the input model path, find entry in config if it exists
-            // If it exists, open Pack/ZsDic.pack.zs
-            // Make dictionary with key file name and value byte data of that file
-
-            // Alternatively just get the user to drop those files in a folder next to the exe or something. Toolbox does that
-
-            if (ZstdDictionaries.Count == 0)
+            if (ZstdDictionary == null)
             {
                 ProcessConfig(path);
-                string dictSarc = Path.Combine(GameRootDirectory, "ZsDic.pack.zs");
+                string dictSarc = Path.Combine(GameRootDirectory, @"Pack\ZsDic.pack.zs");
 
                 if (File.Exists(dictSarc))
                 {
                     byte[] data = File.ReadAllBytes(dictSarc);
-                    DecompressionHelpers.DecompressIfNeeded(data);
+                    data = DecompressionHelpers.DecompressIfNeeded(data);
 
                     Sarc sarc = Sarc.FromBinary(data);
 
-                    // this probably won't work.
-                    // might need to reference this impl
-                    // https://github.com/KillzXGaming/Switch-Toolbox/blob/4b5f4dc5b71615baee702be9ab5627fba6ebffbf/Switch_Toolbox_Library/Compression/Formats/Zstb.cs#L114
-                    foreach (KeyValuePair<string, ArraySegment<byte>> sarcFile in sarc)
+                    if (sarc.TryGetValue("zs.zsdic", out ArraySegment<byte> dictData))
                     {
-                        ZstdDictionaries.Add(sarcFile.Key, sarcFile.Value.ToArray());
+                        ZstdDictionary = dictData.ToArray();
                     }
                 }
             }
@@ -93,16 +84,16 @@ namespace BfresToCast.Utils
 
         public static void GetExternalBinaryStrings(string path)
         {
-            if (ExternalStringsFile != null)
+            if (ExternalStringsFile == null)
             {
                 ProcessConfig(path);
 
-                string ebsPath = Path.Combine(GameRootDirectory, "ExternalBinaryString.bfres.zs");
+                string ebsPath = Path.Combine(GameRootDirectory, @"Shader\ExternalBinaryString.bfres.zs");
 
                 if (File.Exists(ebsPath))
                 {
                     byte[] data = File.ReadAllBytes(ebsPath);
-                    DecompressionHelpers.DecompressIfNeeded(data, ebsPath);
+                    data = DecompressionHelpers.DecompressIfNeeded(data);
 
                     MemoryStream stream = new MemoryStream(data);
                     ExternalStringsFile = new ResFile(stream, true);
@@ -142,11 +133,13 @@ namespace BfresToCast.Utils
                         bool hasVariations = int.TryParse(Path.GetExtension(texture).TrimStart('.'), out int index);
 
                         string baseTextureName = Path.GetFileNameWithoutExtension(texture);
-                        string fileName = Path.Combine(GameRootDirectory, $"{texture}.bntx.zs");
+                        string textureDirectory = Path.Combine(GameRootDirectory, "Tex");
+
+                        string fileName = Path.Combine(textureDirectory, $"{texture}.bntx.zs");
 
                         if (hasVariations)
                         {
-                            foreach (string variant in Directory.GetFiles(GameRootDirectory, $"*{baseTextureName}*"))
+                            foreach (string variant in Directory.GetFiles(textureDirectory, $"*{baseTextureName}*"))
                             {
                                 externalTextures.Add(variant);
                             }
@@ -177,10 +170,9 @@ namespace BfresToCast.Utils
         }
     }
 
-
     public class DecompressionHelpers
     {
-        public static byte[] DecompressIfNeeded(byte[] data, string path = "")
+        public static byte[] DecompressIfNeeded(byte[] data)
         {
             byte[] readId = data.Take(4).ToArray();
             byte[] zstdId = [0x28, 0xB5, 0x2F, 0xFD];
@@ -188,15 +180,7 @@ namespace BfresToCast.Utils
 
             if (readId.SequenceEqual(zstdId))
             {
-                if (path != "")
-                {
-                    return DecompressZStd(data, Path.GetExtension(path));
-                }
-                else
-                {
-                    return DecompressZStd(data);
-                }
-                
+                return DecompressZStd(data);
             }
             else if (readId.SequenceEqual(yaz0Id))
             {
@@ -206,30 +190,18 @@ namespace BfresToCast.Utils
             return data;
         }
 
-        public static byte[] DecompressZStd(byte[] data, string extension)
+        public static byte[] DecompressZStd(byte[] data)
         {
             DecompressionOptions options = new DecompressionOptions();
 
-            // this probably won't work.
-            // might need to reference this impl
-            // https://github.com/KillzXGaming/Switch-Toolbox/blob/4b5f4dc5b71615baee702be9ab5627fba6ebffbf/Switch_Toolbox_Library/Compression/Formats/Zstb.cs#L114
-            if (ExternalFileHelpers.ZstdDictionaries.TryGetValue(extension, out byte[] dic))
+            if (ExternalFileHelpers.ZstdDictionary != null)
             {
-                options = new DecompressionOptions(dic);
+                options = new DecompressionOptions(ExternalFileHelpers.ZstdDictionary);
             }
 
             Decompressor decompressor = new Decompressor(options);
-            decompressor.Unwrap(data);
 
-            return data;
-        }
-
-        public static byte[] DecompressZStd(byte[] data)
-        {
-            Decompressor decompressor = new Decompressor();
-            decompressor.Unwrap(data);
-
-            return data;
+            return decompressor.Unwrap(data); ;
         }
 
         public unsafe static byte[] DecompressYaz0(byte[] Data)
