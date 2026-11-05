@@ -194,7 +194,7 @@ namespace BfresToCast.Utils
                         success = false;
                     }
 
-                    if (success)
+                    if (success && remappedTextures.Count > 0)
                     {
                         File.WriteAllLines(Path.Combine(outputDir, "RemappedTextures.txt"), remappedTextures);
                     }
