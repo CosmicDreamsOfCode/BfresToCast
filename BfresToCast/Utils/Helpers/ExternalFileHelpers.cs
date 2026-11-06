@@ -21,9 +21,9 @@ public static class ExternalFileHelpers
 
     public static void SetUpExternalFiles(string path)
     {
-        ProcessConfig(path);
         if (GameRootDirectory != "!skip")
         {
+            ProcessConfig(path);
             GetZstdDictionary();
             GetExternalBinaryStrings();
             GetTextureRemaps();
