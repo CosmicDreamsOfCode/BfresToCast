@@ -3,7 +3,8 @@ using BfresToCast.Processors;
 using BfresToCast.Utils;
 using SarcLibrary;
 using System.IO;
-using SarcHelper = BfresToCast.Utils.SarcHelper;
+using BfresToCast.Utils.Helpers;
+using SarcHelper = BfresToCast.Utils.Helpers.SarcHelper;
 
 namespace BfresToCast;
 

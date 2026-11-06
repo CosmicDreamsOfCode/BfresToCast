@@ -1,6 +1,7 @@
 using BfresLibrary;
 using BfresLibrary.Switch;
 using BfresToCast.Utils;
+using BfresToCast.Utils.Helpers;
 using ImageLibrary;
 using Syroot.NintenTools.NSW.Bntx;
 
