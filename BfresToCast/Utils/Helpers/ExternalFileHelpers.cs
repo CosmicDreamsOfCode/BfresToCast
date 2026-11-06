@@ -117,20 +117,24 @@ public static class ExternalFileHelpers
     {
         if (TextureRemaps.Count == 0)
         {
-            foreach (string file in Directory.EnumerateFiles(Path.Combine(GameRootDirectory, "System", "Gfx")))
+            string sysGfxPath = Path.Combine(GameRootDirectory, "System", "Gfx");
+            if (Directory.Exists(sysGfxPath))
             {
-                if (Path.GetFileName(file).StartsWith("UnifyTex"))
+                foreach (string file in Directory.EnumerateFiles(sysGfxPath))
                 {
-                    byte[] data = File.ReadAllBytes(file);
-                    data = DecompressionHelpers.DecompressIfNeeded(data);
-
-                    Byml byml = Byml.FromBinary(data);
-                    BymlMap map = byml.GetMap();
-                    foreach (string tex in map.Keys)
+                    if (Path.GetFileName(file).StartsWith("UnifyTex"))
                     {
-                        TextureRemaps.Add(tex, map[tex].GetString());
+                        byte[] data = File.ReadAllBytes(file);
+                        data = DecompressionHelpers.DecompressIfNeeded(data);
+
+                        Byml byml = Byml.FromBinary(data);
+                        BymlMap map = byml.GetMap();
+                        foreach (string tex in map.Keys)
+                        {
+                            TextureRemaps.Add(tex, map[tex].GetString());
+                        }
+                        break;
                     }
-                    break;
                 }
             }
         }
