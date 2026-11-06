@@ -22,20 +22,25 @@ public static class ExternalFileHelpers
     public static void SetUpExternalFiles(string path)
     {
         ProcessConfig(path);
-        GetZstdDictionary(path);
-        GetExternalBinaryStrings(path);
-        GetTextureRemaps(path);
+        if (GameRootDirectory != "!skip")
+        {
+            GetZstdDictionary();
+            GetExternalBinaryStrings();
+            GetTextureRemaps();
+        }
     }
 
     public static void ProcessConfig(string pathToSearch) // TODO: fix it adding to Config for every time this is called (oops)
     {
-        // User can put paths in this config to automatch to texture folder
         string configName = Path.GetFullPath(ConfigName);
         if (File.Exists(configName))
         {
             foreach (string line in File.ReadLines(configName))
             {
-                Config.Add(line);
+                if (!Config.Contains(line))
+                {
+                    Config.Add(line);
+                }
             }
 
             foreach (string line in Config)
@@ -53,7 +58,8 @@ public static class ExternalFileHelpers
 
         if (GameRootDirectory == "")
         {
-            Console.WriteLine("Please provide the path to the root of your game dump. (Press Enter to skip)");
+            Console.WriteLine("Please provide the path to the root of your game dump. This is required for certain games.");
+            Console.WriteLine("Press Enter to skip. (Not reccommended)");
 
             GameRootDirectory = Console.ReadLine();
 
@@ -69,11 +75,11 @@ public static class ExternalFileHelpers
         File.WriteAllLines(Path.GetFullPath(ConfigName), lines);
     }
 
-    public static void GetZstdDictionary(string path)
+    public static void GetZstdDictionary()
     {
         if (ZstdDictionary == null)
         {
-            string dictSarc = Path.Combine(GameRootDirectory, @"Pack\ZsDic.pack.zs");
+            string dictSarc = Path.Combine(GameRootDirectory, "Pack", "ZsDic.pack.zs");
 
             if (File.Exists(dictSarc))
             {
@@ -90,11 +96,11 @@ public static class ExternalFileHelpers
         }
     }
 
-    public static void GetExternalBinaryStrings(string path)
+    public static void GetExternalBinaryStrings()
     {
         if (ExternalStringsFile == null)
         {
-            string ebsPath = Path.Combine(GameRootDirectory, @"Shader\ExternalBinaryString.bfres.zs");
+            string ebsPath = Path.Combine(GameRootDirectory, "Shader", "ExternalBinaryString.bfres.zs");
 
             if (File.Exists(ebsPath))
             {
@@ -107,11 +113,11 @@ public static class ExternalFileHelpers
         }
     }
 
-    public static void GetTextureRemaps(string path)
+    public static void GetTextureRemaps()
     {
         if (TextureRemaps.Count == 0)
         {
-            foreach (string file in Directory.EnumerateFiles(Path.Combine(GameRootDirectory, @"System\Gfx")))
+            foreach (string file in Directory.EnumerateFiles(Path.Combine(GameRootDirectory, "System", "Gfx")))
             {
                 if (Path.GetFileName(file).StartsWith("UnifyTex"))
                 {

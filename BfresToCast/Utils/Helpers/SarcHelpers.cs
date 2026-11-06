@@ -2,7 +2,7 @@ using System.Text;
 
 namespace BfresToCast.Utils.Helpers;
 
-public static class SarcHelper
+public static class SarcHelpers
 {
     public static bool CheckSarc(byte[] data)
     {

@@ -1,10 +1,7 @@
 using BfresLibrary;
 using BfresToCast.Processors;
-using BfresToCast.Utils;
 using SarcLibrary;
-using System.IO;
 using BfresToCast.Utils.Helpers;
-using SarcHelper = BfresToCast.Utils.Helpers.SarcHelper;
 
 namespace BfresToCast;
 
@@ -42,7 +39,7 @@ public class Program
             MemoryStream stream = new MemoryStream();
             byte[] data = File.ReadAllBytes(file);
             data = DecompressionHelpers.DecompressIfNeeded(data);
-            bool isSarc = SarcHelper.CheckSarc(data);
+            bool isSarc = SarcHelpers.CheckSarc(data);
             if (isSarc)
             {
                 Sarc rootSarc = Sarc.FromBinary(data);
@@ -53,12 +50,12 @@ public class Program
                     foreach (KeyValuePair<string, ArraySegment<byte>> sarcFile in sarc)
                     {
                         byte[] fileData = DecompressionHelpers.DecompressIfNeeded(sarcFile.Value.ToArray());
-                        if (SarcHelper.CheckSarc(fileData))
+                        if (SarcHelpers.CheckSarc(fileData))
                         {
                             Sarc subSarc = Sarc.FromBinary(fileData);
                             ProcessSarc(subSarc, sarcFile.Key);
                         }
-                        else if (SarcHelper.CheckBfres(fileData))
+                        else if (SarcHelpers.CheckBfres(fileData))
                         {
                             stream = new MemoryStream(fileData);
                             ResFile modelRes = new ResFile(stream);
