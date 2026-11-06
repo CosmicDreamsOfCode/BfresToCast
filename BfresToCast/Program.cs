@@ -80,7 +80,12 @@ public class Program
             Console.WriteLine();
         }
 
-        if (!success)
+        if (success)
+        {
+            Console.WriteLine("Complete!");
+            Thread.Sleep(1000);
+        }
+        else
         {
             Console.WriteLine("Some errors occurred, See above for info.");
             Console.WriteLine("Press any key to exit...");

@@ -86,6 +86,8 @@ public static class TextureProcessor
             SwitchTexture switchTexture = new SwitchTexture(bntx, texture);
             GenericTextureBase generic = TextureUtils.SwitchTextureToGeneric(switchTexture, isOrin);
 
+            Console.WriteLine($"Saving texture : {switchTexture.Name}...");
+
             if (TextureUtils.IsHDR(switchTexture.Format) || generic.Type == TextureType.TextureCube)
             {
                 generic.Export(Path.Combine(outDir, $"{switchTexture.Name}.dds"), exportSettings);
@@ -94,8 +96,6 @@ public static class TextureProcessor
             {
                 generic.Export(Path.Combine(outDir, $"{switchTexture.Name}.png"), exportSettings);
             }
-            
-            Console.WriteLine($"Saved texture : {switchTexture.Name}");
         }
         
         return true;
@@ -107,10 +107,10 @@ public static class TextureProcessor
 
         foreach (BfresLibrary.WiiU.Texture gx2Tex in modelRes.Textures.Values)
         {
+            Console.WriteLine($"Saving texture : {gx2Tex.Name}...");
+
             GenericTextureBase generic = TextureUtils.GX2TextureToGeneric(gx2Tex);
             generic.Export(Path.Combine(outDir, $"{gx2Tex.Name}.png"), exportSettings);
-
-            Console.WriteLine($"Saved texture : {gx2Tex.Name}");
         }
 
         return true;
