@@ -15,7 +15,7 @@ Drag and drop BFRES or SARC files that contain BFRES onto the executable or set 
 - Splatoon 3 (.bfres.zs, works)
 - Paper Mario TTYD (.bfres.zst, works)
 - Mario Wonder (.bfres.zs, works)
-- Tears of the Kingdom (does not work, requires external strings file, may not support)
+- Tears of the Kingdom (does not work, may not support)
 
 ## BfresToCast makes use of the following:
 - [Astc-Encoder-csharp](https://github.com/Ash39/Astc-Encoder-csharp/tree/2638331143a786f9e3a9e1e7916639d39877cfde)
@@ -30,7 +30,6 @@ Drag and drop BFRES or SARC files that contain BFRES onto the executable or set 
 - [Syroot Maths](https://gitlab.com/Syroot/Maths)
 - [Syroot NintenTools NSW Bntx](https://github.com/KillzXGaming/LegacySwitchLibraries)
 - [ZstdNet](https://github.com/skbkontur/ZstdNet)
-- [image_dds](https://github.com/ScanMountGoat/image_dds)
 - [tegra_swizzle](https://github.com/KillzXGaming/tegra_swizzle)
 
 

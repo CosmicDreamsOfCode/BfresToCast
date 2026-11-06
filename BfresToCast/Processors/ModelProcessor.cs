@@ -16,6 +16,8 @@ public static class ModelProcessor
 {
     public static bool Process(Model model, string outDir, ByteOrder byteOrder)
     {
+        Console.WriteLine($"Saving model : {model.Name}...");
+
         CastNode root = new CastNode(CastNodeIdentifier.Root);
         ModelNode modelNode = root.AddNode<ModelNode>();
         SkeletonNode skeletonNode = modelNode.AddNode<SkeletonNode>();
@@ -95,7 +97,6 @@ public static class ModelProcessor
         }
 
         CastWriter.Save($@"{outDir}/{model.Name}.cast", root);
-        Console.WriteLine($"Saved model : {model.Name}");
 
         return true;
     }
