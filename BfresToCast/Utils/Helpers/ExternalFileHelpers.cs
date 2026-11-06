@@ -30,7 +30,7 @@ public static class ExternalFileHelpers
         }
     }
 
-    public static void ProcessConfig(string pathToSearch) // TODO: fix it adding to Config for every time this is called (oops)
+    public static void ProcessConfig(string pathToSearch)
     {
         string configName = Path.GetFullPath(ConfigName);
         if (File.Exists(configName))
