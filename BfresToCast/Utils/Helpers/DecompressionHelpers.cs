@@ -34,7 +34,7 @@ public static class DecompressionHelpers
 
         Decompressor decompressor = new Decompressor(options);
 
-        return decompressor.Unwrap(data); ;
+        return decompressor.Unwrap(data);
     }
 
     public unsafe static byte[] DecompressYaz0(byte[] Data)
