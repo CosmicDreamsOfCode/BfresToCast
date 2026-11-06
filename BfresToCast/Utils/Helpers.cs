@@ -7,7 +7,7 @@ using ZstdNet;
 
 namespace BfresToCast.Utils
 {
-    public class ExternalFileHelpers
+    public static class ExternalFileHelpers
     {
         private static string GameRootDirectory = "";
 
@@ -212,7 +212,7 @@ namespace BfresToCast.Utils
         }
     }
 
-    public class DecompressionHelpers
+    public static class DecompressionHelpers
     {
         public static byte[] DecompressIfNeeded(byte[] data)
         {
@@ -277,7 +277,7 @@ namespace BfresToCast.Utils
         }
     }
 
-    public class SarcHelper
+    public static class SarcHelper
     {
         public static bool CheckSarc(byte[] data)
         {
