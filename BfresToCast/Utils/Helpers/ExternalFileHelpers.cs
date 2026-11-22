@@ -206,14 +206,14 @@ public static class ExternalFileHelpers
                 {
                     File.WriteAllLines(Path.Combine(outputDir, "RemappedTextures.txt"), remappedTextures);
                 }
-            }
-        }
 
-        if (success && !Config.Contains(GameRootDirectory))
-        {
-            // Add this path to the config if it's not already there
-            Config.Add(GameRootDirectory);
-            SaveConfig(Config);
+                if (success && !Config.Contains(GameRootDirectory))
+                {
+                    // Add this path to the config if it's not already there
+                    Config.Add(GameRootDirectory);
+                    SaveConfig(Config);
+                }
+            }
         }
 
         return success;
