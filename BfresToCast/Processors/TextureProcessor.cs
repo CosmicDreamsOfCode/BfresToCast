@@ -56,6 +56,8 @@ public static class TextureProcessor
                             Console.WriteLine($"Failed to process BNTX {exBntx.Name}: {e}");
                             success = false;
                         }
+
+                        stream.Dispose();
                     }
                 }
             }

@@ -77,6 +77,7 @@ public class Program
                 success &= BfresProcessor.Process(modelRes, file, false);
             }
 
+            stream.Dispose();
             Console.WriteLine();
         }
 
